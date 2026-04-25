@@ -566,7 +566,13 @@ function filtrarModal() {
     // Ubicaciones agrupadas
     if (q) {
       // Buscar en vigas — por ubicacion O por producto O por clave
+      const esEntradaBusq = estado.tipo === 'E' && estado.modalActivo === 'ubicacion';
+      const esDestinoBusq = estado.modalActivo === 'destino';
       const vigasFiltradas = UBICACIONES_VIGAS.filter(u => {
+        if (esEntradaBusq || esDestinoBusq) {
+          // Entrada y Destino: solo vigas vacías que coincidan con la búsqueda
+          return !mapaVigas[u] && u.toLowerCase().includes(q);
+        }
         if (u.toLowerCase().includes(q)) return true;
         const info = mapaVigas[u];
         return info && (info.producto.toLowerCase().includes(q) || (info.clave && info.clave.toLowerCase().includes(q)));
