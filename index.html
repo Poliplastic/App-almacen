@@ -673,13 +673,13 @@ function selEspecialProducto(ubicacion, clave, nombre) {
   btnUb.querySelector('span').textContent = ubicacion;
   document.getElementById('viga-warning').style.display = 'none';
 
-  // Fijar producto
+  // Fijar producto y bloquear
   estado.producto = {clave, nombre};
   const btnP = document.getElementById('btn-producto');
   btnP.classList.add('selected');
   btnP.querySelector('span').innerHTML = `<span class="field-btn-clave">${clave}</span>${nombre}`;
-  btnP.style.pointerEvents = '';
-  btnP.style.opacity = '';
+  btnP.style.pointerEvents = 'none';
+  btnP.style.opacity = '0.8';
   document.getElementById('card-producto').style.display = 'block';
 
   cerrarModalBtn();
