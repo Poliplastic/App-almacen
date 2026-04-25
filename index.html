@@ -501,6 +501,8 @@ function selTipo(tipo, el) {
   document.getElementById('btn-ubicacion').querySelector('span').textContent = 'Seleccionar ubicación...';
   document.getElementById('btn-producto').classList.remove('selected');
   document.getElementById('btn-producto').querySelector('span').textContent = 'Seleccionar producto...';
+  document.getElementById('btn-producto').style.pointerEvents = '';
+  document.getElementById('btn-producto').style.opacity = '';
   document.getElementById('viga-warning').style.display = 'none';
 }
 
@@ -647,11 +649,13 @@ function selItem(clave, nombre) {
         abrirModalSE(clave);
         return;
       } else if (info) {
-        // Ubicacion tiene producto — auto-llenar
+        // Ubicacion tiene producto — auto-llenar y bloquear
         estado.producto = {clave: info.clave, nombre: info.producto};
         const btnP = document.getElementById('btn-producto');
         btnP.classList.add('selected');
         btnP.querySelector('span').innerHTML = `<span class="field-btn-clave">${info.clave}</span>${info.producto}`;
+        btnP.style.pointerEvents = 'none';
+        btnP.style.opacity = '0.8';
         document.getElementById('card-producto').style.display = 'block';
         warn.style.display = 'none';
         cerrarModalBtn();
@@ -855,6 +859,9 @@ function resetForm() {
   document.getElementById('qty-unit').textContent = 'tarima(s)';
   document.getElementById('viga-warning').style.display = 'none';
   document.getElementById('viga-warning-destino').style.display = 'none';
+  const btnP = document.getElementById('btn-producto');
+  btnP.style.pointerEvents = '';
+  btnP.style.opacity = '';
 }
 
 // ============================================================
