@@ -530,8 +530,8 @@ function abrirModal(tipo) {
   document.getElementById('modal-title').textContent = titles[tipo];
   document.getElementById('modal-search-input').value = '';
   document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
   filtrarModal();
-  setTimeout(() => document.getElementById('modal-search-input').focus(), 300);
 }
 
 function filtrarModal() {
@@ -600,7 +600,7 @@ function filtrarModal() {
       let html = esDestino ? `
         <div class="modal-item" onclick="selItem('SE','SE')" style="border-bottom:1px solid var(--gray-100)">
           <span class="item-clave" style="min-width:56px">SE</span>
-          <span class="item-nombre" style="font-weight:600;color:var(--green)">Enviar aquí</span>
+          <span class="item-nombre" style="font-weight:600;color:var(--green)"></span>
         </div>` : `
         <div class="modal-item" onclick="toggleEspecial('SE')" style="border-bottom:1px solid var(--gray-100)">
           <span class="item-clave" style="min-width:56px">SE</span>
@@ -623,17 +623,21 @@ function filtrarModal() {
           <span style="color:var(--gray-400);font-size:12px;margin-left:auto" id="vigas-arrow">▼</span>
         </div>
         <div id="vigas-lista" style="display:none">
-          ${UBICACIONES_VIGAS.map(u => renderUbicacionItem(u)).join('')}
+          ${UBICACIONES_VIGAS.map(u => {
+            const info = mapaVigas[u];
+            if (esDestino && info) return ''; // solo vacías en destino
+            return renderUbicacionItem(u);
+          }).join('')}
         </div>`;
 
       html += esDestino ? `
         <div class="modal-item" onclick="selItem('BODEGA\\x202','BODEGA\\x202')" style="border-bottom:1px solid var(--gray-100)">
           <span class="item-clave" style="min-width:56px">BODEGA 2</span>
-          <span class="item-nombre" style="font-weight:600;color:var(--green)">Enviar aquí</span>
+          <span class="item-nombre" style="font-weight:600;color:var(--green)"></span>
         </div>
         <div class="modal-item" onclick="selItem('COCINA','COCINA')" style="border-bottom:1px solid var(--gray-100)">
           <span class="item-clave" style="min-width:56px">COCINA</span>
-          <span class="item-nombre" style="font-weight:600;color:var(--green)">Enviar aquí</span>
+          <span class="item-nombre" style="font-weight:600;color:var(--green)"></span>
         </div>` : `
         <div class="modal-item" onclick="toggleEspecial('BODEGA 2')" style="border-bottom:1px solid var(--gray-100)">
           <span class="item-clave" style="min-width:56px">BODEGA 2</span>
@@ -881,6 +885,7 @@ function borrarUltimaLetra() {
 function cerrarModal(e) { if (e.target === document.getElementById('modal-overlay')) cerrarModalBtn(); }
 function cerrarModalBtn() { 
   document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
   vigasExpandido = false;
 }
 
