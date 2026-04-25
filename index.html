@@ -563,8 +563,12 @@ function filtrarModal() {
   } else {
     // Ubicaciones agrupadas
     if (q) {
-      // Buscar en vigas
-      const vigasFiltradas = UBICACIONES_VIGAS.filter(u => u.toLowerCase().includes(q));
+      // Buscar en vigas — por ubicacion O por producto
+      const vigasFiltradas = UBICACIONES_VIGAS.filter(u => {
+        if (u.toLowerCase().includes(q)) return true;
+        const info = mapaVigas[u];
+        return info && info.producto.toLowerCase().includes(q);
+      });
       let html = '';
       
       // Para destino, mostrar especiales directamente sin productos
@@ -624,14 +628,15 @@ function filtrarModal() {
       }
 
       html += `
-        <div class="modal-item zona" onclick="toggleVigas()" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">VIGAS</span>
-          <span style="color:var(--gray-400);font-size:12px;margin-left:8px" id="vigas-arrow">▼</span>
+        <div class="modal-item" onclick="toggleVigas()" style="border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="min-width:56px">VIGAS</span>
+          <span class="item-nombre" style="font-weight:600;color:var(--green);flex:1">Ver espacios</span>
+          <span style="color:var(--gray-400);font-size:12px" id="vigas-arrow">▼</span>
         </div>
         <div id="vigas-lista" style="display:none">
           ${UBICACIONES_VIGAS.map(u => {
             const info = mapaVigas[u];
-            if (esDestino && info) return ''; // solo vacías en destino
+            if ((esDestino || esEntrada) && info) return ''; // solo vacías en destino y entrada
             return renderUbicacionItem(u);
           }).join('')}
         </div>`;
