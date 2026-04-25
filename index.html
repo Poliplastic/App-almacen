@@ -564,9 +564,10 @@ function renderUbicacionItem(u) {
 
   const esSoloLectura = estado.modalActivo === 'ubicacion' && (estado.tipo === 'S' || estado.tipo === 'C') && !tieneProducto && !esEspecial;
 
+  const uEscaped = u.replace(/'/g, "\\'").replace(/ /g, '\\x20');
   return `
     <div class="modal-item" 
-      onclick="${esSoloLectura ? '' : `selItem('${u}','${u}')`}"
+      onclick="${esSoloLectura ? '' : `selItem('${uEscaped}','${uEscaped}')`}"
       style="${esSoloLectura ? 'opacity:0.35;cursor:default' : ''}">
       <span class="item-clave" style="min-width:56px;${esSoloLectura ? 'background:var(--gray-200);color:var(--gray-500)' : ''}">${u}</span>
       <span class="item-nombre" style="color:${tieneProducto ? 'var(--green)' : 'var(--gray-400)'};font-size:13px">${subtexto}</span>
