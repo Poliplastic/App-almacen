@@ -898,16 +898,19 @@ function buscarProducto() {
   
   if (!q) { resultados.innerHTML = ''; return; }
 
+  const palabras = q.split(' ').filter(p => p.length > 0);
+  const coincide = (texto) => palabras.every(p => texto.toLowerCase().includes(p));
+
   // Buscar en vigas
   const vigasEncontradas = Object.entries(mapaVigas)
-    .filter(([ub, info]) => info.producto.toLowerCase().includes(q))
+    .filter(([ub, info]) => coincide(info.producto))
     .map(([ub, info]) => ({ubicacion: ub, producto: info.producto, clave: info.clave}));
 
   // Buscar en especiales
   const especialesEncontrados = [];
   Object.entries(especiales).forEach(([ub, prods]) => {
     prods.forEach(p => {
-      if (p.producto.toLowerCase().includes(q)) {
+      if (coincide(p.producto)) {
         especialesEncontrados.push({ubicacion: ub, producto: p.producto, clave: p.clave, cantidad: p.cantidad});
       }
     });
