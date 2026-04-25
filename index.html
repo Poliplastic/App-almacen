@@ -256,7 +256,14 @@
 <!-- SCREEN: MAPA VIGAS -->
 <div class="screen" id="screen-mapa">
   <div class="card">
-    <div class="section-label" style="margin-bottom:12px">Mapa de vigas — Zona 1</div>
+    <div class="section-label" style="margin-bottom:8px">Buscar producto</div>
+    <input type="text" id="buscar-producto" placeholder="Ej: Rollo 11x14, cam grande..." 
+      oninput="buscarProducto()"
+      style="width:100%;padding:11px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:DM Sans,sans-serif;font-size:14px;outline:none;margin-bottom:8px">
+    <div id="buscar-resultados"></div>
+  </div>
+  <div class="card">
+    <div class="section-label" style="margin-bottom:12px">Mapa de Vigas</div>
     <div style="overflow-x:auto">
       <table class="mapa-table" id="mapa-table"></table>
     </div>
@@ -276,6 +283,15 @@
   <div id="historial-list"></div>
 </div>
 
+<!-- POPUP VIGA -->
+<div id="popup-viga" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center" onclick="cerrarPopupViga()">
+  <div style="background:white;border-radius:16px;padding:24px;margin:20px;max-width:300px;width:100%;text-align:center">
+    <div style="font-family:DM Mono,monospace;font-size:22px;font-weight:600;color:var(--green);margin-bottom:8px" id="popup-titulo"></div>
+    <div style="font-size:15px;color:var(--gray-900);margin-bottom:16px" id="popup-producto"></div>
+    <button onclick="cerrarPopupViga()" style="background:var(--green);color:white;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer">Cerrar</button>
+  </div>
+</div>
+
 <div class="bottom-nav">
   <div class="nav-item active" id="nav-registrar" onclick="cambiarScreen('registrar')">
     <span class="nav-icon">＋</span>
@@ -283,7 +299,7 @@
   </div>
   <div class="nav-item" id="nav-mapa" onclick="cambiarScreen('mapa')">
     <span class="nav-icon">⊞</span>
-    <div class="nav-label">Mapa vigas</div>
+    <div class="nav-label">Buscar</div>
   </div>
   <div class="nav-item" id="nav-historial" onclick="cambiarScreen('historial')">
     <span class="nav-icon">☰</span>
@@ -320,7 +336,7 @@
 // ============================================================
 // CONFIG
 // ============================================================
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwB5eqQhlyQsyxYf-Fd1tMoWYcbBO9Nl9umH0aLdTabDiGUjOkXJ8jl1eTeJ2B66po/exec';
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzb06CCgFzZCOzUKxOdAmgkHhwTcVnBA3HovomCxc_gOokjvymxQdWnI5XbvhVhDg/exec';
 
 const EMPLEADOS = ['Carlos','Miguel','Juan','Pedro','Luis','Roberto','Antonio','Fernando','Jorge','Manuel'];
 
@@ -860,8 +876,12 @@ function renderMapa() {
         const key = `${c}${r}`;
         const info = mapaVigas[key];
         if (info) {
-          const short = info.producto.substring(0, 10);
-          html += `<td class="ocupada" title="${info.producto}"><div class="mapa-prod">${short}</div></td>`;
+          const short = info.producto.substring(0, 8);
+          const color = info.color ? `background:${info.color};border-color:${info.color}` : '';
+          const textColor = info.color ? 'color:#333' : '';
+          html += `<td class="ocupada" style="${color}" onclick="mostrarPopupViga('${key}','${info.producto.replace(/'/g,"\\'")}')">
+            <div class="mapa-prod" style="${textColor}">${short}</div>
+          </td>`;
         } else {
           html += '<td class="vacia">·</td>';
         }
@@ -870,6 +890,72 @@ function renderMapa() {
     html += '</tr>';
   }
   document.getElementById('mapa-table').innerHTML = html;
+}
+
+function buscarProducto() {
+  const q = document.getElementById('buscar-producto').value.toLowerCase().trim();
+  const resultados = document.getElementById('buscar-resultados');
+  
+  if (!q) { resultados.innerHTML = ''; return; }
+
+  // Buscar en vigas
+  const vigasEncontradas = Object.entries(mapaVigas)
+    .filter(([ub, info]) => info.producto.toLowerCase().includes(q))
+    .map(([ub, info]) => ({ubicacion: ub, producto: info.producto, clave: info.clave}));
+
+  // Buscar en especiales
+  const especialesEncontrados = [];
+  Object.entries(especiales).forEach(([ub, prods]) => {
+    prods.forEach(p => {
+      if (p.producto.toLowerCase().includes(q)) {
+        especialesEncontrados.push({ubicacion: ub, producto: p.producto, clave: p.clave, cantidad: p.cantidad});
+      }
+    });
+  });
+
+  if (vigasEncontradas.length === 0 && especialesEncontrados.length === 0) {
+    resultados.innerHTML = '<div style="color:var(--gray-400);font-size:13px;padding:8px 0">Sin resultados</div>';
+    return;
+  }
+
+  let html = '';
+  
+  if (especialesEncontrados.length > 0) {
+    especialesEncontrados.forEach(r => {
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100)">
+        <div>
+          <span style="font-family:DM Mono,monospace;font-size:11px;background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:4px;margin-right:8px">${r.ubicacion}</span>
+          <span style="font-size:13px;color:var(--gray-900)">${r.producto}</span>
+        </div>
+        <span style="font-size:12px;color:var(--gray-500)">${r.cantidad} tar.</span>
+      </div>`;
+    });
+  }
+
+  if (vigasEncontradas.length > 0) {
+    const vigas = vigasEncontradas.map(r => `
+      <span onclick="mostrarPopupViga('${r.ubicacion}','${r.producto.replace(/'/g,"\\'")}') " 
+        style="display:inline-block;font-family:DM Mono,monospace;font-size:12px;background:var(--green-light);color:var(--green);padding:4px 10px;border-radius:6px;margin:3px;cursor:pointer">${r.ubicacion}</span>
+    `).join('');
+    const nombreProducto = vigasEncontradas[0].producto;
+    html += `<div style="padding:8px 0">
+      <div style="font-size:13px;color:var(--gray-900);margin-bottom:6px">${nombreProducto} — <span style="color:var(--gray-500)">${vigasEncontradas.length} viga(s)</span></div>
+      <div>${vigas}</div>
+    </div>`;
+  }
+
+  resultados.innerHTML = html;
+}
+
+function mostrarPopupViga(ubicacion, producto) {
+  const popup = document.getElementById('popup-viga');
+  document.getElementById('popup-titulo').textContent = ubicacion;
+  document.getElementById('popup-producto').textContent = producto;
+  popup.style.display = 'flex';
+}
+
+function cerrarPopupViga() {
+  document.getElementById('popup-viga').style.display = 'none';
 }
 
 function renderOtrasUbicaciones() {
