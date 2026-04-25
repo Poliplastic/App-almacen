@@ -547,7 +547,7 @@ function filtrarModal() {
       items = prods.filter(p => p.producto.toLowerCase().includes(q) || p.clave.toLowerCase().includes(q));
       list.innerHTML = items.map(p => `
         <div class="modal-item" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
-          <span class="item-clave">${p.clave}</span>
+          
           <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad} tar.)</span></span>
         </div>
       `).join('') || '<div class="empty-state"><div class="empty-icon">📦</div>No hay productos aquí</div>';
@@ -555,7 +555,7 @@ function filtrarModal() {
       items = PRODUCTOS.filter(p => p.nombre.toLowerCase().includes(q) || p.clave.toLowerCase().includes(q));
       list.innerHTML = items.map(p => `
         <div class="modal-item" onclick="selItem('${p.clave}','${p.nombre.replace(/'/g,"\\'")}')">
-          <span class="item-clave">${p.clave}</span>
+          
           <span class="item-nombre">${p.nombre}</span>
         </div>
       `).join('') || '<div class="empty-state"><div class="empty-icon">🔍</div>Sin resultados</div>';
@@ -620,7 +620,7 @@ function filtrarModal() {
         <div id="lista-SE" style="display:none">
           ${(especiales['SE']||[]).map(p => `
             <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('SE','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
-              <span class="item-clave">${p.clave}</span>
+              
               <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
             </div>
           `).join('')}
@@ -665,7 +665,7 @@ function filtrarModal() {
         <div id="lista-BODEGA2" style="display:none">
           ${(especiales['BODEGA 2']||[]).map(p => `
             <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('BODEGA\\x202','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
-              <span class="item-clave">${p.clave}</span>
+              
               <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
             </div>
           `).join('')}
@@ -678,7 +678,7 @@ function filtrarModal() {
         <div id="lista-COCINA" style="display:none">
           ${(especiales['COCINA']||[]).map(p => `
             <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('COCINA','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
-              <span class="item-clave">${p.clave}</span>
+              
               <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
             </div>
           `).join('')}
@@ -892,7 +892,7 @@ function abrirModalSE(ubicacion) {
   } else {
     list.innerHTML = prods.map(p => `
       <div class="modal-item" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
-        <span class="item-clave">${p.clave}</span>
+        
         <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad} tar.)</span></span>
       </div>
     `).join('');
