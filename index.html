@@ -918,31 +918,46 @@ function buscarProducto() {
     return;
   }
 
-  let html = '';
+  // Agrupar por producto
+  const grupos = {};
   
-  if (especialesEncontrados.length > 0) {
-    especialesEncontrados.forEach(r => {
-      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100)">
-        <div>
-          <span style="font-family:DM Mono,monospace;font-size:11px;background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:4px;margin-right:8px">${r.ubicacion}</span>
-          <span style="font-size:13px;color:var(--gray-900)">${r.producto}</span>
-        </div>
-        <span style="font-size:12px;color:var(--gray-500)">${r.cantidad} tar.</span>
-      </div>`;
-    });
-  }
+  vigasEncontradas.forEach(r => {
+    if (!grupos[r.producto]) grupos[r.producto] = {vigas: [], especiales: [], totalTarimas: 0};
+    grupos[r.producto].vigas.push(r.ubicacion);
+    grupos[r.producto].totalTarimas += 1;
+  });
 
-  if (vigasEncontradas.length > 0) {
-    const vigas = vigasEncontradas.map(r => `
-      <span onclick="mostrarPopupViga('${r.ubicacion}','${r.producto.replace(/'/g,"\\'")}') " 
-        style="display:inline-block;font-family:DM Mono,monospace;font-size:12px;background:var(--green-light);color:var(--green);padding:4px 10px;border-radius:6px;margin:3px;cursor:pointer">${r.ubicacion}</span>
-    `).join('');
-    const nombreProducto = vigasEncontradas[0].producto;
-    html += `<div style="padding:8px 0">
-      <div style="font-size:13px;color:var(--gray-900);margin-bottom:6px">${nombreProducto} — <span style="color:var(--gray-500)">${vigasEncontradas.length} viga(s)</span></div>
-      <div>${vigas}</div>
-    </div>`;
-  }
+  especialesEncontrados.forEach(r => {
+    if (!grupos[r.producto]) grupos[r.producto] = {vigas: [], especiales: [], totalTarimas: 0};
+    grupos[r.producto].especiales.push({ubicacion: r.ubicacion, cantidad: r.cantidad});
+    grupos[r.producto].totalTarimas += r.cantidad;
+  });
+
+  let html = '';
+  Object.entries(grupos).forEach(([producto, data]) => {
+    // Ubicaciones a la izquierda
+    let ubicaciones = '';
+    data.vigas.forEach(ub => {
+      ubicaciones += `<span onclick="mostrarPopupViga('${ub}','${producto.replace(/'/g,"\\'")}') " 
+        style="display:inline-block;font-family:DM Mono,monospace;font-size:11px;background:var(--green-light);color:var(--green);padding:3px 8px;border-radius:5px;margin:2px;cursor:pointer">${ub}</span>`;
+    });
+    data.especiales.forEach(e => {
+      ubicaciones += `<span style="display:inline-block;font-family:DM Mono,monospace;font-size:11px;background:#fffbeb;color:#b45309;padding:3px 8px;border-radius:5px;margin:2px">${e.ubicacion} (${e.cantidad})</span>`;
+    });
+
+    html += `
+      <div style="padding:10px 0;border-bottom:1px solid var(--gray-100)">
+        <div style="font-size:13px;font-weight:600;color:var(--gray-900);margin-bottom:6px">${producto}</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1">${ubicaciones}</div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:18px;font-weight:700;color:var(--green)">${data.totalTarimas}</div>
+            <div style="font-size:10px;color:var(--gray-500)">tarimas</div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
 
   resultados.innerHTML = html;
 }
