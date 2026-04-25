@@ -315,10 +315,7 @@
       <button class="modal-close" onclick="cerrarModalBtn()">✕</button>
     </div>
     <div class="modal-search">
-      <div style="display:flex;gap:8px;align-items:center">
-        <input type="text" id="modal-search-input" placeholder="Buscar..." oninput="filtrarModal()" style="flex:1">
-        <button onclick="borrarUltimaLetra()" style="width:40px;height:40px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:var(--gray-50);font-size:16px;cursor:pointer;flex-shrink:0">⌫</button>
-      </div>
+      <input type="text" id="modal-search-input" placeholder="Buscar..." oninput="filtrarModal()">
     </div>
     <div class="modal-list" id="modal-list"></div>
   </div>
@@ -571,7 +568,7 @@ function filtrarModal() {
         </div>
         <div id="lista-SE" style="display:none">
           ${(especiales['SE']||[]).map(p => `
-            <div class="modal-item" style="padding-left:24px" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
+            <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('SE','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
               <span class="item-clave">${p.clave}</span>
               <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
             </div>
@@ -592,7 +589,7 @@ function filtrarModal() {
         </div>
         <div id="lista-BODEGA2" style="display:none">
           ${(especiales['BODEGA 2']||[]).map(p => `
-            <div class="modal-item" style="padding-left:24px" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
+            <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('BODEGA\\x202','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
               <span class="item-clave">${p.clave}</span>
               <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
             </div>
@@ -605,7 +602,7 @@ function filtrarModal() {
         </div>
         <div id="lista-COCINA" style="display:none">
           ${(especiales['COCINA']||[]).map(p => `
-            <div class="modal-item" style="padding-left:24px" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
+            <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('COCINA','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
               <span class="item-clave">${p.clave}</span>
               <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
             </div>
@@ -666,6 +663,26 @@ function actualizarCantidadSegunUbicacion() {
     });
     document.getElementById('qty-unit').textContent = 'tarima(s)';
   }
+}
+
+function selEspecialProducto(ubicacion, clave, nombre) {
+  // Fijar ubicacion
+  estado.ubicacion = ubicacion;
+  const btnUb = document.getElementById('btn-ubicacion');
+  btnUb.classList.add('selected');
+  btnUb.querySelector('span').textContent = ubicacion;
+  document.getElementById('viga-warning').style.display = 'none';
+
+  // Fijar producto
+  estado.producto = {clave, nombre};
+  const btnP = document.getElementById('btn-producto');
+  btnP.classList.add('selected');
+  btnP.querySelector('span').innerHTML = `<span class="field-btn-clave">${clave}</span>${nombre}`;
+  btnP.style.pointerEvents = '';
+  btnP.style.opacity = '';
+  document.getElementById('card-producto').style.display = 'block';
+
+  cerrarModalBtn();
 }
 
 function toggleEspecial(ub) {
