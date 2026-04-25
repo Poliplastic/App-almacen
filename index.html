@@ -555,9 +555,25 @@ function filtrarModal() {
   } else {
     // Ubicaciones agrupadas
     if (q) {
-      // Si hay búsqueda, mostrar todo filtrado
-      const allUbs = [...UBICACIONES_ESPECIALES, ...UBICACIONES_VIGAS].filter(u => u.toLowerCase().includes(q));
-      list.innerHTML = allUbs.map(u => renderUbicacionItem(u)).join('');
+      // Buscar en vigas
+      const vigasFiltradas = UBICACIONES_VIGAS.filter(u => u.toLowerCase().includes(q));
+      // Buscar en especiales por nombre de producto
+      let html = '';
+      UBICACIONES_ESPECIALES.forEach(ub => {
+        const prods = (especiales[ub] || []).filter(p => 
+          p.producto.toLowerCase().includes(q) || p.clave.toLowerCase().includes(q) || ub.toLowerCase().includes(q)
+        );
+        prods.forEach(p => {
+          html += `
+            <div class="modal-item" onclick="selEspecialProducto('${ub.replace(/'/g,"\\'")}','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
+              <span class="item-clave" style="min-width:56px">${ub}</span>
+              <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
+            </div>
+          `;
+        });
+      });
+      html += vigasFiltradas.map(u => renderUbicacionItem(u)).join('');
+      list.innerHTML = html || '<div class="empty-state"><div class="empty-icon">🔍</div>Sin resultados</div>';
     } else {
       // Sin búsqueda — mostrar especiales + botón de vigas
       let html = `
@@ -644,10 +660,9 @@ function renderUbicacionItem(u) {
 
 function actualizarCantidadSegunUbicacion() {
   const esEspecialOrigen = UBICACIONES_ESPECIALES.includes(estado.ubicacion);
-  const esEspecialDestino = UBICACIONES_ESPECIALES.includes(estado.destino);
   const esViga = estado.ubicacion && !esEspecialOrigen;
   
-  // Si origen es viga, bloquear cantidad en 1
+  // Solo bloquear cantidad en vigas específicas, no en SE/Bodega/Cocina
   if (esViga) {
     estado.cantidad = 1;
     document.getElementById('qty-display').textContent = '1';
