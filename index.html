@@ -628,10 +628,9 @@ function filtrarModal() {
       }
 
       html += `
-        <div class="modal-item" onclick="toggleVigas()" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px">VIGAS</span>
-          <span class="item-nombre" style="font-weight:600;color:var(--green);flex:1">Ver espacios</span>
-          <span style="color:var(--gray-400);font-size:12px" id="vigas-arrow">▼</span>
+        <div class="modal-item zona" onclick="toggleVigas()" style="border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">VIGAS</span>
+          <span style="color:var(--gray-400);font-size:12px;margin-left:8px" id="vigas-arrow">▼</span>
         </div>
         <div id="vigas-lista" style="display:none">
           ${UBICACIONES_VIGAS.map(u => {
@@ -695,10 +694,11 @@ function renderUbicacionItem(u) {
     subtexto = tieneProducto ? `${prods.length} producto(s)` : 'Vacío';
   } else {
     tieneProducto = !!info;
-    subtexto = info ? info.producto.substring(0, 22) : 'Vacío';
+    subtexto = info ? info.producto : 'Vacío';
   }
 
-  const esSoloLectura = estado.modalActivo === 'ubicacion' && (estado.tipo === 'S' || estado.tipo === 'C') && !tieneProducto && !esEspecial;
+  const esSoloLectura = (estado.modalActivo === 'ubicacion' && (estado.tipo === 'S' || estado.tipo === 'C') && !tieneProducto && !esEspecial) ||
+    (estado.modalActivo === 'ubicacion' && estado.tipo === 'E' && tieneProducto && !esEspecial);
 
   const uEscaped = u.replace(/'/g, "\\'").replace(/ /g, '\\x20');
   return `
