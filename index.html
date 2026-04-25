@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Movimientos · Almacén</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --green: #1a5c3a;
+    --green-light: #e8f5ee;
+    --green-mid: #2d7a4f;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --white: #ffffff;
+    --shadow: 0 1px 3px rgba(0,0,0,0.1);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); min-height: 100vh; color: var(--gray-900); padding-bottom: 80px; }
+
+  .topbar { background: var(--green); padding: 16px 20px 14px; position: sticky; top: 0; z-index: 100; }
+  .topbar-row { display: flex; align-items: center; justify-content: space-between; }
+  .topbar h1 { font-size: 17px; font-weight: 600; color: white; }
+  .topbar-sub { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 2px; }
+  .empleado-chip { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 5px 10px 5px 6px; cursor: pointer; }
+  .avatar { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: white; }
+  .empleado-name { font-size: 12px; color: white; font-weight: 500; }
+
+  .screen { display: none; padding: 16px; }
+  .screen.active { display: block; }
+
+  .card { background: var(--white); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px; }
+  .section-label { font-size: 11px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+
+  .tipo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tipo-btn { padding: 12px 8px; border-radius: var(--radius-sm); border: 1.5px solid var(--gray-200); background: var(--gray-50); text-align: center; cursor: pointer; transition: all 0.15s; }
+  .tipo-btn .tipo-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+  .tipo-btn .tipo-label { font-size: 12px; font-weight: 500; color: var(--gray-700); }
+  .tipo-btn.active { border-color: var(--green); background: var(--green-light); }
+  .tipo-btn.active .tipo-label { color: var(--green); }
+
+  .field-btn { width: 100%; padding: 13px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--gray-200); background: var(--gray-50); display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--gray-500); transition: border-color 0.15s; }
+  .field-btn.selected { color: var(--gray-900); border-color: var(--green); background: var(--white); }
+  .field-btn-clave { font-family: 'DM Mono', monospace; font-size: 11px; background: var(--green-light); color: var(--green); padding: 3px 7px; border-radius: 4px; margin-right: 8px; }
+  .field-arrow { color: var(--gray-300); font-size: 12px; flex-shrink: 0; }
+
+  .cantidad-row { display: flex; align-items: center; gap: 12px; }
+  .qty-btn { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--gray-200); background: var(--gray-50); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--gray-700); font-weight: 500; }
+  .qty-btn:active { background: var(--green-light); border-color: var(--green); }
+  .qty-display { flex: 1; text-align: center; font-size: 28px; font-weight: 600; }
+  .qty-unit { font-size: 12px; color: var(--gray-500); text-align: center; margin-top: 2px; }
+
+  .notas-area { width: 100%; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--gray-900); background: var(--gray-50); resize: none; min-height: 70px; outline: none; }
+  .notas-area:focus { border-color: var(--green); }
+  .notas-area::placeholder { color: var(--gray-300); }
+
+  .btn-registrar { width: 100%; padding: 15px; background: var(--green); color: white; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+  .btn-registrar:active { background: var(--green-mid); }
+  .btn-registrar:disabled { background: var(--gray-300); cursor: not-allowed; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 20px 20px 0 0; width: 100%; max-height: 85vh; display: flex; flex-direction: column; animation: slideUp 0.25s ease; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-size: 15px; font-weight: 600; }
+  .modal-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--gray-100); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--gray-500); }
+  .modal-search { padding: 12px 16px; border-bottom: 1px solid var(--gray-100); }
+  .modal-search input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; }
+  .modal-search input:focus { border-color: var(--green); }
+  .modal-list { overflow-y: auto; flex: 1; }
+  .modal-item { padding: 13px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid var(--gray-50); }
+  .modal-item:active { background: var(--green-light); }
+  .item-clave { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--green); background: var(--green-light); padding: 3px 8px; border-radius: 4px; min-width: 48px; text-align: center; flex-shrink: 0; }
+  .item-nombre { font-size: 14px; color: var(--gray-900); }
+
+  .confirm-card { background: var(--green-light); border: 1.5px solid var(--green); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+  .confirm-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+  .confirm-row:last-child { margin-bottom: 0; }
+  .confirm-label { font-size: 12px; color: var(--green-mid); font-weight: 500; flex-shrink: 0; }
+  .confirm-value { font-size: 14px; color: var(--green); font-weight: 600; text-align: right; }
+  .confirm-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn-cancel { padding: 13px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); background: var(--white); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--gray-700); }
+  .btn-confirm { padding: 13px; border: none; border-radius: var(--radius-sm); background: var(--green); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; color: white; }
+  .btn-confirm:disabled { background: var(--gray-300); }
+
+  .success-banner { display: none; background: var(--green); color: white; padding: 14px 20px; border-radius: var(--radius); text-align: center; font-weight: 600; font-size: 15px; margin-bottom: 12px; }
+  .error-banner { display: none; background: var(--red); color: white; padding: 14px 20px; border-radius: var(--radius); text-align: center; font-weight: 600; font-size: 14px; margin-bottom: 12px; }
+
+  /* VIGA OCUPADA WARNING */
+  .viga-warning { background: #fffbeb; border: 1.5px solid var(--amber); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 8px; font-size: 13px; color: #92400e; display: none; }
+
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--gray-200); display: flex; padding: 8px 0 12px; z-index: 100; }
+  .nav-item { flex: 1; text-align: center; cursor: pointer; padding: 4px 0; }
+  .nav-icon { font-size: 22px; display: block; }
+  .nav-label { font-size: 10px; color: var(--gray-500); margin-top: 2px; font-weight: 500; }
+  .nav-item.active .nav-label { color: var(--green); }
+
+  /* MAPA */
+  .mapa-table { width: 100%; border-collapse: collapse; font-size: 9px; }
+  .mapa-table td { border: 1px solid var(--gray-200); border-radius: 3px; padding: 3px; text-align: center; min-width: 28px; }
+  .mapa-table td.ocupada { background: var(--green-light); border-color: var(--green); }
+  .mapa-table td.vacia { background: var(--gray-50); color: var(--gray-300); }
+  .mapa-table td.header { background: none; border: none; font-weight: 600; color: var(--gray-500); font-family: 'DM Mono', monospace; }
+  .mapa-prod { color: var(--green); font-weight: 600; font-size: 8px; line-height: 1.2; }
+
+  /* HISTORIAL */
+  .log-item { background: var(--white); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 8px; border-left: 3px solid var(--gray-300); box-shadow: var(--shadow); }
+  .log-item.entrada { border-color: var(--green); }
+  .log-item.salida { border-color: var(--red); }
+  .log-item.cambio { border-color: var(--amber); }
+  .log-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .log-tipo { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 10px; }
+  .log-tipo.entrada { background: var(--green-light); color: var(--green); }
+  .log-tipo.salida { background: #fef2f2; color: var(--red); }
+  .log-tipo.cambio { background: #fffbeb; color: #b45309; }
+  .log-time { font-size: 11px; color: var(--gray-500); }
+  .log-producto { font-size: 14px; font-weight: 600; margin: 6px 0 2px; }
+  .log-detail { font-size: 12px; color: var(--gray-500); }
+  .log-nota { font-size: 12px; color: var(--gray-500); font-style: italic; margin-top: 4px; }
+  .log-empleado { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+
+  .emp-item { padding: 14px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid var(--gray-50); }
+  .emp-item:active { background: var(--green-light); }
+  .emp-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: white; }
+  .emp-name { font-size: 14px; font-weight: 500; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-500); font-size: 14px; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .otras-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+  .otras-row:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-row">
+    <div>
+      <h1>Movimientos</h1>
+      <div class="topbar-sub" id="fecha-hoy"></div>
+    </div>
+    <div class="empleado-chip" onclick="abrirModalEmpleado()">
+      <div class="avatar" id="avatar-initials">--</div>
+      <span class="empleado-name" id="empleado-display">Seleccionar</span>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: REGISTRAR -->
+<div class="screen active" id="screen-registrar">
+  <div id="success-banner" class="success-banner">✓ Movimiento registrado en Sheets</div>
+  <div id="error-banner" class="error-banner"></div>
+  <div id="loading-msg" style="background:var(--amber);color:white;padding:12px 16px;border-radius:var(--radius);text-align:center;font-size:13px;font-weight:500;margin-bottom:12px">⏳ Cargando datos del almacén...</div>
+
+  <div id="form-view">
+    <div class="card">
+      <div class="section-label">Tipo de movimiento</div>
+      <div class="tipo-grid">
+        <div class="tipo-btn active" onclick="selTipo('S', this)">
+          <span class="tipo-icon">📤</span>
+          <span class="tipo-label">Salida</span>
+        </div>
+        <div class="tipo-btn" onclick="selTipo('C', this)">
+          <span class="tipo-icon">🔄</span>
+          <span class="tipo-label">Cambio</span>
+        </div>
+        <div class="tipo-btn" onclick="selTipo('E', this)">
+          <span class="tipo-icon">📥</span>
+          <span class="tipo-label">Entrada</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="card-producto" style="display:none">
+      <div class="section-label">Producto</div>
+      <button class="field-btn" id="btn-producto" onclick="abrirModal('producto')">
+        <span id="producto-text">Seleccionar producto...</span>
+        <span class="field-arrow">▼</span>
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="section-label" id="label-ubicacion">Ubicación</div>
+      <button class="field-btn" id="btn-ubicacion" onclick="abrirModal('ubicacion')">
+        <span id="ubicacion-text">Seleccionar ubicación...</span>
+        <span class="field-arrow">▼</span>
+      </button>
+      <div class="viga-warning" id="viga-warning">⚠️ Esta ubicación ya tiene: <strong id="viga-producto-actual"></strong></div>
+    </div>
+
+    <div class="card" id="card-destino" style="display:none">
+      <div class="section-label">Ubicación destino</div>
+      <button class="field-btn" id="btn-destino" onclick="abrirModal('destino')">
+        <span id="destino-text">Seleccionar destino...</span>
+        <span class="field-arrow">▼</span>
+      </button>
+      <div class="viga-warning" id="viga-warning-destino">⚠️ Destino ya tiene: <strong id="viga-destino-actual"></strong></div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Cantidad (tarimas)</div>
+      <div class="cantidad-row">
+        <button class="qty-btn" onclick="cambiarQty(-1)">−</button>
+        <div>
+          <div class="qty-display" id="qty-display">1</div>
+          <div class="qty-unit">tarima(s)</div>
+        </div>
+        <button class="qty-btn" onclick="cambiarQty(1)">+</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Notas (opcional)</div>
+      <textarea class="notas-area" id="notas-input" placeholder="Ej: tarima incompleta, faltan ~10 cajas..."></textarea>
+    </div>
+
+    <button class="btn-registrar" id="btn-registrar" onclick="mostrarConfirmacion()" disabled>Registrar movimiento</button>
+  </div>
+
+  <!-- CONFIRMACION -->
+  <div id="confirm-view" style="display:none">
+    <div class="card">
+      <div class="section-label" style="margin-bottom:12px">Confirma el movimiento</div>
+      <div class="confirm-card">
+        <div class="confirm-row"><span class="confirm-label">TIPO</span><span class="confirm-value" id="c-tipo"></span></div>
+        <div class="confirm-row"><span class="confirm-label">PRODUCTO</span><span class="confirm-value" id="c-producto"></span></div>
+        <div class="confirm-row"><span class="confirm-label">UBICACIÓN</span><span class="confirm-value" id="c-ubicacion"></span></div>
+        <div class="confirm-row" id="c-destino-row" style="display:none"><span class="confirm-label">DESTINO</span><span class="confirm-value" id="c-destino"></span></div>
+        <div class="confirm-row"><span class="confirm-label">CANTIDAD</span><span class="confirm-value" id="c-cantidad"></span></div>
+        <div class="confirm-row" id="c-nota-row" style="display:none"><span class="confirm-label">NOTA</span><span class="confirm-value" id="c-nota" style="font-weight:400;font-style:italic"></span></div>
+        <div class="confirm-row"><span class="confirm-label">NOMBRE</span><span class="confirm-value" id="c-empleado"></span></div>
+      </div>
+      <div class="confirm-btns">
+        <button class="btn-cancel" onclick="cancelarConfirmacion()">← Corregir</button>
+        <button class="btn-confirm" id="btn-confirm" onclick="confirmarRegistro()">✓ Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: MAPA VIGAS -->
+<div class="screen" id="screen-mapa">
+  <div class="card">
+    <div class="section-label" style="margin-bottom:12px">Mapa de vigas — Zona 1</div>
+    <div style="overflow-x:auto">
+      <table class="mapa-table" id="mapa-table"></table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-label" style="margin-bottom:10px">Otras ubicaciones</div>
+    <div id="otras-ubicaciones"></div>
+  </div>
+</div>
+
+<!-- SCREEN: HISTORIAL -->
+<div class="screen" id="screen-historial">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div class="section-label" style="margin:0">Movimientos de hoy</div>
+    <button onclick="limpiarHistorial()" style="font-size:12px;color:var(--gray-500);border:none;background:none;cursor:pointer">Limpiar</button>
+  </div>
+  <div id="historial-list"></div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-item active" id="nav-registrar" onclick="cambiarScreen('registrar')">
+    <span class="nav-icon">＋</span>
+    <div class="nav-label">Registrar</div>
+  </div>
+  <div class="nav-item" id="nav-mapa" onclick="cambiarScreen('mapa')">
+    <span class="nav-icon">⊞</span>
+    <div class="nav-label">Mapa vigas</div>
+  </div>
+  <div class="nav-item" id="nav-historial" onclick="cambiarScreen('historial')">
+    <span class="nav-icon">☰</span>
+    <div class="nav-label">Historial</div>
+  </div>
+</div>
+
+<!-- MODAL PRODUCTO/UBICACION -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Seleccionar</span>
+      <button class="modal-close" onclick="cerrarModalBtn()">✕</button>
+    </div>
+    <div class="modal-search">
+      <input type="text" id="modal-search-input" placeholder="Buscar..." oninput="filtrarModal()">
+    </div>
+    <div class="modal-list" id="modal-list"></div>
+  </div>
+</div>
+
+<!-- MODAL EMPLEADO -->
+<div class="modal-overlay" id="modal-empleado" onclick="cerrarModalEmp(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">¿Quién eres?</span>
+      <button class="modal-close" onclick="document.getElementById('modal-empleado').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-list" id="empleados-list"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwB5eqQhlyQsyxYf-Fd1tMoWYcbBO9Nl9umH0aLdTabDiGUjOkXJ8jl1eTeJ2B66po/exec';
+
+const EMPLEADOS = ['Carlos','Miguel','Juan','Pedro','Luis','Roberto','Antonio','Fernando','Jorge','Manuel'];
+
+const UBICACIONES_VIGAS = [
+  'A1','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12','A13','A14','A15','A16','A17','A18',
+  'B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11','B12','B13','B14','B15','B16','B17','B18',
+  'C1','C2','C3','C4','C5','C6','C7','C8','C9','C10','C11','C12','C13','C14','C15','C16','C17','C18',
+  'D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13','D14','D15','D16','D17','D18',
+  'E1','E2','E3','E4','E5','E6','E7','E8','E9','E10','E11','E12','E13','E14','E15','E16','E17','E18',
+  'F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12','F13','F14','F15','F16','F17','F18',
+  'G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','G11','G12',
+  'H1','H2','H3','H4','H5','H6','H7','H8','H9','H10','H11','H12',
+  'I1','I2','I3','I4','I5','I6','I7','I8','I9','I10','I11','I12',
+  'J1','J2','J3','J4','J5','J6','J7','J8','J9','J10','J11','J12',
+  'K1','K2','K3','K4','K5','K6','K7','K8','K9','K10','K11','K12',
+  'L1','L2','L3','L4','L5','L6','L7','L8','L9','L10','L11','L12',
+];
+
+const UBICACIONES_ESPECIALES = ['SE','BODEGA 2','COCINA'];
+
+let vigasExpandido = false;
+
+const PRODUCTOS = [{"clave":"1-A","nombre":"Cam Grande 22 mic Blanca"},{"clave":"1-B","nombre":"Cam Grande 22 mic Negra"},{"clave":"1-C","nombre":"Cam Grande 17 mic Clear"},{"clave":"1-D","nombre":"Cam Grande 11 mic Clear"},{"clave":"1-E","nombre":"Cam Grande 12.5 mic Blanca"},{"clave":"1-F","nombre":"Cam Grande 12.5 mic Negra"},{"clave":"1-G","nombre":"Cam Mediana 17 mic Negra"},{"clave":"1-H","nombre":"Cam Mediana 11 mic Blanca"},{"clave":"1-I","nombre":"Cam Mediana 11 mic Negra"},{"clave":"1-J","nombre":"Cam Chica 13 mic Blanca"},{"clave":"1-K","nombre":"Cam Chica 13 mic Negra"},{"clave":"1-L","nombre":"Cam Grande 17mic Biodegradable"},{"clave":"1-M","nombre":"Cam Grande 18 mic Blanca"},{"clave":"1-N","nombre":"Cam X-Jumbo 18 mic Bio"},{"clave":"1-O","nombre":"Cam Jumbo 18 mic Bio 15x7x26"},{"clave":"1-P","nombre":"Cam Jumbo 18 mic Negra"},{"clave":"1-Q","nombre":"Cam Mediana 17 mic Blanca"},{"clave":"1-T","nombre":"Cam Grande 22 mic Biodegradable"},{"clave":"1-U","nombre":"Cam Grande 12.5mic Biodegradable"},{"clave":"1-V","nombre":"Cam Mediana 17mic Biodegradable"},{"clave":"1-W","nombre":"Cam Chica 13mic Biodegradable"},{"clave":"1-X","nombre":"Cam Mediana 11 mic Biodegradable"},{"clave":"1-Ñ","nombre":"Cam X-Jumbo 25 mic Negra"},{"clave":"10-A","nombre":"Bolsa p/basura 55 gal"},{"clave":"10-B","nombre":"Bolsa p/basura 48 gal"},{"clave":"10-C","nombre":"Bolsa p/basura 33 gal"},{"clave":"10-D","nombre":"Bolsa p/basura 17 gal"},{"clave":"10-E","nombre":"Bolsa p/basura 10 gal"},{"clave":"11-A","nombre":"Bolsa Nat 8x10"},{"clave":"11-B","nombre":"Bolsa Nat 8x12"},{"clave":"11-C","nombre":"Bolsa Nat 8x15"},{"clave":"11-D","nombre":"Bolsa Nat 8x20"},{"clave":"11-E","nombre":"Bolsa Nat 8x25"},{"clave":"11-F","nombre":"Bolsa Nat 10x15"},{"clave":"11-G","nombre":"Bolsa Nat 10x20"},{"clave":"11-H","nombre":"Bolsa Nat 10x25"},{"clave":"11-I","nombre":"Bolsa Nat 15x20"},{"clave":"11-J","nombre":"Bolsa Nat 15x25"},{"clave":"11-K","nombre":"Bolsa Nat 18x26"},{"clave":"11-L","nombre":"Bolsa Nat 20x30"},{"clave":"11-M","nombre":"Bolsa Nat 25x30"},{"clave":"11-N","nombre":"Bolsa Nat 25x35"},{"clave":"11-O","nombre":"Bolsa Nat 30x40"},{"clave":"11-P","nombre":"Bolsa Nat 30x50"},{"clave":"11-Q","nombre":"Bolsa Nat 30x60"},{"clave":"11-R","nombre":"Bolsa Nat 35x45"},{"clave":"11-S","nombre":"Bolsa Nat 35x50"},{"clave":"11-T","nombre":"Bolsa Nat 40x60"},{"clave":"11-U","nombre":"Bolsa Nat 45x65"},{"clave":"11-V","nombre":"Bolsa Nat 50x70"},{"clave":"11-W","nombre":"Bolsa Nat 60x60"},{"clave":"11-X","nombre":"Bolsa Nat 60x90"},{"clave":"11-Y","nombre":"Bolsa Nat 80x120"},{"clave":"11-Z","nombre":"Bolsa Nat 100x120"},{"clave":"11-Ñ","nombre":"Bolsa Nat 25x40"},{"clave":"12-A","nombre":"Bolsa Nat 20x30 en Rollo Baja"},{"clave":"12-B","nombre":"Bolsa Nat 25x35 en Rollo Baja"},{"clave":"12-C","nombre":"Bolsa Nat 18x26 en Rollo Baja"},{"clave":"12-D","nombre":"Bolsa Nat 30x40 en Rollo Baja"},{"clave":"12-E","nombre":"Bolsa Nat 15x25 en Rollo Baja"},{"clave":"13-A","nombre":"Bolsa Nat 40x60 en Rollo Baja"},{"clave":"13-B","nombre":"Bolsa Nat 50x70 en Rollo Baja"},{"clave":"13-C","nombre":"Bolsa Nat 28x36 c/8 Rollos Alta"},{"clave":"13-D","nombre":"Bolsa Nat 28x43 c/8 Rollos Alta"},{"clave":"13-E","nombre":"Bolsa Nat 28x48 c/8 Rollos Alta"},{"clave":"13-F","nombre":"Bolsa Nat 15x25 c/8 Rollos Alta"},{"clave":"13-G","nombre":"Bolsa Nat 20x30 c/8 Rollos Alta"},{"clave":"13-H","nombre":"Bolsa Nat 40x60 c/8 Rollos Alta"},{"clave":"13-I","nombre":"Bolsa Nat 60x90 en Rollo Baja"},{"clave":"13-J","nombre":"Bolsa Nat 35x45 en Rollo Baja"},{"clave":"13-K","nombre":"Bolsa Nat 23x26"},{"clave":"14-A","nombre":"Bolsa Nat 35x50 MAN"},{"clave":"14-B","nombre":"Bolsa en Rollo 11x14 Jumbo de Colores"},{"clave":"14-C","nombre":"Bolsa Nat 15x32 MAN"},{"clave":"14-D","nombre":"Bolsa Lavamatica"},{"clave":"14-F","nombre":"Rafia"},{"clave":"15-A","nombre":"Meat 18x4000 K"},{"clave":"15-B","nombre":"Meat 17x4000 K"},{"clave":"15-C","nombre":"Meat 15x4000 K"},{"clave":"15-D","nombre":"Stretch 18x1500 K"},{"clave":"15-E","nombre":"Stretch 15x1500 K"},{"clave":"16-A","nombre":"Meat 18x4000 W"},{"clave":"16-B","nombre":"Meat 17x4000 W"},{"clave":"16-C","nombre":"Meat 18x2000 W"},{"clave":"16-D","nombre":"Meat 11.5x2000 W"},{"clave":"17-A","nombre":"Tape Rollo Canela"},{"clave":"17-B","nombre":"Tape Rollo Transparente"},{"clave":"18-B","nombre":"Alum 12x1000 Est"},{"clave":"18-C","nombre":"Alum 12x1000 Green Pack"},{"clave":"18-D","nombre":"Alum 12x200 Green Pack"},{"clave":"18-E","nombre":"Alum 12x200 Standard"},{"clave":"18-F","nombre":"Alum 12x75"},{"clave":"18-G","nombre":"Alum Cortado 12 Green Pack"},{"clave":"18-H","nombre":"Alum Cortado 9 Green Pack"},{"clave":"19-A","nombre":"Cuchara Grande"},{"clave":"19-B","nombre":"Cuchara Mediana"},{"clave":"19-C","nombre":"Tenedor"},{"clave":"19-D","nombre":"Cuchillo"},{"clave":"19-E","nombre":"Cuchara X-Grande"},{"clave":"2-M","nombre":"Cam 8x4x16 Blanca K"},{"clave":"2-N","nombre":"Cam 8x4x16 Negra K"},{"clave":"20-A","nombre":"Rollo 72"},{"clave":"20-B","nombre":"Rollo 54"},{"clave":"20-C","nombre":"Rollo 38"},{"clave":"20-D","nombre":"Rollo 30"},{"clave":"21-A","nombre":"Taco 6x6"},{"clave":"21-B","nombre":"Taco 6x5"},{"clave":"21-C","nombre":"Papel Encerado Taco/Torta"},{"clave":"21-D","nombre":"Charola 10x30"},{"clave":"21-E","nombre":"Rollo Rosa"},{"clave":"21-F","nombre":"Rollo Melon"},{"clave":"22-A","nombre":"Bolsa Can Liner 40x48"},{"clave":"22-B","nombre":"Bolsa Can Liner 36x60"},{"clave":"22-C","nombre":"Bolsa Can Liner 33x40"},{"clave":"22-D","nombre":"Bolsa Can Liner 24x33"},{"clave":"22-E","nombre":"Bolsa Can Liner 24x24"},{"clave":"23-A","nombre":"Guantes de Vinyl Chicos"},{"clave":"23-B","nombre":"Guantes de Vinyl Medianos"},{"clave":"23-C","nombre":"Guantes de Vinyl Grandes"},{"clave":"23-D","nombre":"Cubrebocas"},{"clave":"4-A","nombre":"Cam Saldo c/10kgs"},{"clave":"4-C","nombre":"Cam Grande Rain"},{"clave":"4-D","nombre":"Cam Mediana Rain"},{"clave":"4-E","nombre":"Cam Chica Rain"},{"clave":"4-F","nombre":"Cam Jumbo GP Bio"},{"clave":"4-G","nombre":"Cam Grande OLI"},{"clave":"4-H","nombre":"Cam Mediana OLI"},{"clave":"4-I","nombre":"Cam Grande ECO"},{"clave":"4-J","nombre":"Cam Mediana ECO"},{"clave":"4-K","nombre":"Cam Chica ECO"},{"clave":"4-L","nombre":"Cam Jumbo ECO"},{"clave":"4-M","nombre":"Cam Grande FOR 30x55"},{"clave":"4-N","nombre":"Cam Mediana FOR 25x50"},{"clave":"4-R","nombre":"Cam Grande GP Bio"},{"clave":"4-S","nombre":"Cam Mediana GP Bio"},{"clave":"4-T","nombre":"Cam Chica GP Bio"},{"clave":"4-U","nombre":"Cam Grande GP Delgada"},{"clave":"4-V","nombre":"Cam Mediana GP Delgada"},{"clave":"4-W","nombre":"Cam Chica GP Delgada"},{"clave":"4-Ñ","nombre":"Cam Chica FOR 23x40"},{"clave":"5-A","nombre":"Rollo 11x14 8mic"},{"clave":"5-B","nombre":"Rollo 11x14"},{"clave":"5-C","nombre":"Rollo 8x12"},{"clave":"5-D","nombre":"Rollo 6x10"},{"clave":"5-E","nombre":"Rollo 11x17 8mic"},{"clave":"5-F","nombre":"Rollo 11x14 13mic Jumbo"},{"clave":"5-G","nombre":"Rollo 11x14 S"},{"clave":"5-H","nombre":"Rollo 11x19"},{"clave":"5-J","nombre":"Rollo 8x12 Negro"},{"clave":"5-K","nombre":"Rollo 6x10 Negro"},{"clave":"5-L","nombre":"Rollo 11x14 s/warning"},{"clave":"5-M","nombre":"Rollo 16x20"},{"clave":"5-N","nombre":"Rollo 12x20 10mic Biodegradable"},{"clave":"5-O","nombre":"Rollo 8x12 Biodegradable"},{"clave":"5-P","nombre":"Rollo 6x10 Biodegradable"},{"clave":"5-Q","nombre":"Rollo 11x14 13mic Jumbo Bio"},{"clave":"5-R","nombre":"Rollo 11x14 8mic Jumbo Bio"},{"clave":"5-S","nombre":"Rollo Cam Grande 14mic Bio"},{"clave":"5-T","nombre":"Rollo Cam Mediana 13mic Bio"},{"clave":"5-U","nombre":"Rollo 11x17 13mic Jumbo"},{"clave":"5-V","nombre":"Rollo 11x14 S Bio"},{"clave":"5-W","nombre":"Rollo 11x14 9.5mic Bio c/1600"},{"clave":"5-X","nombre":"Rollo 8x12 12mic Jumbo Bio"},{"clave":"5-Ñ","nombre":"Rollo 11x14 Biodegradable"},{"clave":"8-B","nombre":"Rollo 11x17 Rain"},{"clave":"9-A","nombre":"33 gal c/100 CHI"},{"clave":"9-C","nombre":"33 gal c/100 Rain"},{"clave":"9-D","nombre":"33 gal c/100 ALU"},{"clave":"9-E","nombre":"Bolsa Basura con Asa 24x29"},{"clave":"9-F","nombre":"Bolsa Basura con Asa 27x34"}];
+
+// ============================================================
+// ESTADO
+// ============================================================
+let estado = {
+  tipo: 'S', producto: null, ubicacion: null, destino: null,
+  cantidad: 1, empleado: localStorage.getItem('empleado') || null,
+  modalActivo: null
+};
+
+let historial = JSON.parse(localStorage.getItem('historial') || '[]');
+let mapaVigas = {};
+
+// Limpiar historial si es de otro día
+const hoy = new Date().toDateString();
+if (localStorage.getItem('historialFecha') !== hoy) {
+  historial = [];
+  localStorage.setItem('historial', '[]');
+  localStorage.setItem('historialFecha', hoy);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  const d = new Date();
+  document.getElementById('fecha-hoy').textContent =
+    d.toLocaleDateString('es-MX', {weekday:'long', day:'numeric', month:'long'});
+  if (estado.empleado) actualizarEmpleadoUI();
+  else abrirModalEmpleado();
+  renderEmpleados();
+  cargarMapaDesdeSheets();
+  renderHistorial();
+});
+
+// ============================================================
+// CARGAR MAPA DESDE SHEETS
+// ============================================================
+let especiales = {SE: [], 'BODEGA 2': [], COCINA: []};
+let datosListos = false;
+
+async function cargarMapaDesdeSheets() {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10 seg timeout
+    const res = await fetch(SHEETS_URL, {signal: controller.signal});
+    clearTimeout(timeout);
+    const data = await res.json();
+    if (data.vigas) mapaVigas = data.vigas;
+    if (data.especiales) especiales = data.especiales;
+    datosListos = true;
+    document.getElementById('btn-registrar').disabled = false;
+    document.getElementById('loading-msg').style.display = 'none';
+    renderMapa();
+    renderOtrasUbicaciones();
+  } catch(e) {
+    // Si falla o timeout, usar localStorage y seguir
+    mapaVigas = JSON.parse(localStorage.getItem('mapaVigas') || '{}');
+    datosListos = true;
+    document.getElementById('btn-registrar').disabled = false;
+    document.getElementById('loading-msg').textContent = '⚠️ Sin conexión — usando datos locales';
+    document.getElementById('loading-msg').style.background = 'var(--red)';
+    setTimeout(() => document.getElementById('loading-msg').style.display = 'none', 3000);
+    renderMapa();
+    renderOtrasUbicaciones();
+  }
+}
+
+// ============================================================
+// EMPLEADO
+// ============================================================
+function actualizarEmpleadoUI() {
+  if (!estado.empleado) return;
+  document.getElementById('avatar-initials').textContent = estado.empleado.substring(0,2).toUpperCase();
+  document.getElementById('empleado-display').textContent = estado.empleado;
+}
+
+function abrirModalEmpleado() {
+  document.getElementById('modal-empleado').classList.add('open');
+}
+
+function cerrarModalEmp(e) {
+  if (e.target === document.getElementById('modal-empleado') && estado.empleado)
+    document.getElementById('modal-empleado').classList.remove('open');
+}
+
+function renderEmpleados() {
+  document.getElementById('empleados-list').innerHTML = EMPLEADOS.map(e => `
+    <div class="emp-item" onclick="selEmpleado('${e}')">
+      <div class="emp-avatar">${e.substring(0,2).toUpperCase()}</div>
+      <div class="emp-name">${e}</div>
+    </div>
+  `).join('');
+}
+
+function selEmpleado(nombre) {
+  estado.empleado = nombre;
+  localStorage.setItem('empleado', nombre);
+  actualizarEmpleadoUI();
+  document.getElementById('modal-empleado').classList.remove('open');
+}
+
+// ============================================================
+// TIPO
+// ============================================================
+function selTipo(tipo, el) {
+  estado.tipo = tipo;
+  document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const cardDestino = document.getElementById('card-destino');
+  const cardProducto = document.getElementById('card-producto');
+  const labelUbicacion = document.getElementById('label-ubicacion');
+  
+  if (tipo === 'C') {
+    // Cambio: ubicacion primero, producto se auto-detecta
+    cardDestino.style.display = 'block';
+    cardProducto.style.display = 'none';
+    labelUbicacion.textContent = 'Ubicación origen';
+    estado.destino = null;
+    estado.producto = null;
+  } else if (tipo === 'S') {
+    // Salida: ubicacion primero, producto se auto-detecta
+    cardDestino.style.display = 'none';
+    cardProducto.style.display = 'none';
+    labelUbicacion.textContent = 'Ubicación';
+    estado.destino = null;
+    estado.producto = null;
+  } else {
+    // Entrada: producto primero, luego ubicacion
+    cardDestino.style.display = 'none';
+    cardProducto.style.display = 'block';
+    labelUbicacion.textContent = 'Ubicación';
+    estado.destino = null;
+    estado.producto = null;
+  }
+  // Reset ubicacion
+  estado.ubicacion = null;
+  document.getElementById('btn-ubicacion').classList.remove('selected');
+  document.getElementById('btn-ubicacion').querySelector('span').textContent = 'Seleccionar ubicación...';
+  document.getElementById('btn-producto').classList.remove('selected');
+  document.getElementById('btn-producto').querySelector('span').textContent = 'Seleccionar producto...';
+  document.getElementById('viga-warning').style.display = 'none';
+}
+
+// ============================================================
+// CANTIDAD
+// ============================================================
+function cambiarQty(delta) {
+  estado.cantidad = Math.max(1, estado.cantidad + delta);
+  document.getElementById('qty-display').textContent = estado.cantidad;
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function abrirModal(tipo) {
+  estado.modalActivo = tipo;
+  const titles = {producto: 'Seleccionar producto', ubicacion: 'Seleccionar ubicación', destino: 'Ubicación destino'};
+  document.getElementById('modal-title').textContent = titles[tipo];
+  document.getElementById('modal-search-input').value = '';
+  document.getElementById('modal-overlay').classList.add('open');
+  filtrarModal();
+  setTimeout(() => document.getElementById('modal-search-input').focus(), 300);
+}
+
+function filtrarModal() {
+  const q = document.getElementById('modal-search-input').value.toLowerCase();
+  const list = document.getElementById('modal-list');
+  
+  if (estado.modalActivo === 'producto') {
+    const items = PRODUCTOS.filter(p => p.nombre.toLowerCase().includes(q) || p.clave.toLowerCase().includes(q));
+    list.innerHTML = items.map(p => `
+      <div class="modal-item" onclick="selItem('${p.clave}','${p.nombre.replace(/'/g,"\\'")}')">
+        <span class="item-clave">${p.clave}</span>
+        <span class="item-nombre">${p.nombre}</span>
+      </div>
+    `).join('') || '<div class="empty-state"><div class="empty-icon">🔍</div>Sin resultados</div>';
+  } else {
+    // Ubicaciones agrupadas
+    if (q) {
+      // Si hay búsqueda, mostrar todo filtrado
+      const allUbs = [...UBICACIONES_ESPECIALES, ...UBICACIONES_VIGAS].filter(u => u.toLowerCase().includes(q));
+      list.innerHTML = allUbs.map(u => renderUbicacionItem(u)).join('');
+    } else {
+      // Sin búsqueda — mostrar especiales + botón de vigas
+      let html = renderUbicacionItem('SE');
+      html += `
+        <div class="modal-item" onclick="toggleVigas()" style="background:var(--gray-50);border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="background:var(--gray-200);color:var(--gray-700);min-width:56px">VIGAS</span>
+          <span class="item-nombre" style="font-weight:600;color:var(--gray-700)">Ver espacios</span>
+          <span style="color:var(--gray-400);font-size:12px;margin-left:auto" id="vigas-arrow">▼</span>
+        </div>
+        <div id="vigas-lista" style="display:none">
+          ${UBICACIONES_VIGAS.map(u => renderUbicacionItem(u)).join('')}
+        </div>
+      `;
+      html += renderUbicacionItem('BODEGA 2');
+      html += renderUbicacionItem('COCINA');
+      list.innerHTML = html;
+    }
+  }
+}
+
+function renderUbicacionItem(u) {
+  const info = mapaVigas[u];
+  const esEspecial = UBICACIONES_ESPECIALES.includes(u);
+  let tieneProducto = false;
+  let subtexto = 'Vacío';
+
+  if (esEspecial) {
+    const prods = especiales[u] || [];
+    tieneProducto = prods.length > 0;
+    subtexto = tieneProducto ? `${prods.length} producto(s)` : 'Vacío';
+  } else {
+    tieneProducto = !!info;
+    subtexto = info ? info.producto.substring(0, 22) : 'Vacío';
+  }
+
+  const esSoloLectura = estado.modalActivo === 'ubicacion' && (estado.tipo === 'S' || estado.tipo === 'C') && !tieneProducto && !esEspecial;
+
+  return `
+    <div class="modal-item" 
+      onclick="${esSoloLectura ? '' : `selItem('${u}','${u}')`}"
+      style="${esSoloLectura ? 'opacity:0.35;cursor:default' : ''}">
+      <span class="item-clave" style="min-width:56px;${esSoloLectura ? 'background:var(--gray-200);color:var(--gray-500)' : ''}">${u}</span>
+      <span class="item-nombre" style="color:${tieneProducto ? 'var(--green)' : 'var(--gray-400)'};font-size:13px">${subtexto}</span>
+    </div>
+  `;
+}
+
+function actualizarCantidadSegunUbicacion() {
+  const esEspecialOrigen = UBICACIONES_ESPECIALES.includes(estado.ubicacion);
+  const esEspecialDestino = UBICACIONES_ESPECIALES.includes(estado.destino);
+  const esViga = estado.ubicacion && !esEspecialOrigen;
+  
+  // Si origen es viga, bloquear cantidad en 1
+  if (esViga) {
+    estado.cantidad = 1;
+    document.getElementById('qty-display').textContent = '1';
+    document.querySelectorAll('.qty-btn').forEach(b => {
+      b.disabled = true;
+      b.style.opacity = '0.3';
+    });
+    document.getElementById('qty-unit').textContent = 'tarima (máx. 1 en viga)';
+  } else {
+    document.querySelectorAll('.qty-btn').forEach(b => {
+      b.disabled = false;
+      b.style.opacity = '1';
+    });
+    document.getElementById('qty-unit').textContent = 'tarima(s)';
+  }
+}
+
+function toggleVigas() {
+  const lista = document.getElementById('vigas-lista');
+  const arrow = document.getElementById('vigas-arrow');
+  vigasExpandido = !vigasExpandido;
+  lista.style.display = vigasExpandido ? 'block' : 'none';
+  arrow.textContent = vigasExpandido ? '▲' : '▼';
+}
+
+function selItem(clave, nombre) {
+  const tipo = estado.modalActivo;
+  if (tipo === 'producto') {
+    estado.producto = {clave, nombre};
+    const btn = document.getElementById('btn-producto');
+    btn.classList.add('selected');
+    btn.querySelector('span').innerHTML = `<span class="field-btn-clave">${clave}</span>${nombre}`;
+  } else if (tipo === 'ubicacion') {
+    estado.ubicacion = clave;
+    const btn = document.getElementById('btn-ubicacion');
+    btn.classList.add('selected');
+    btn.querySelector('span').textContent = clave;
+    
+    const info = mapaVigas[clave];
+    const warn = document.getElementById('viga-warning');
+
+    if (estado.tipo === 'S' || estado.tipo === 'C') {
+      // Auto-detectar producto de la ubicacion
+      if (clave === 'SE' || clave === 'BODEGA 2' || clave === 'COCINA') {
+        // Especial — mostrar lista de productos que hay ahí
+        warn.style.display = 'none';
+        cerrarModalBtn();
+        abrirModalSE(clave);
+        return;
+      } else if (info) {
+        // Ubicacion tiene producto — auto-llenar
+        estado.producto = {clave: info.clave, nombre: info.producto};
+        const btnP = document.getElementById('btn-producto');
+        btnP.classList.add('selected');
+        btnP.querySelector('span').innerHTML = `<span class="field-btn-clave">${info.clave}</span>${info.producto}`;
+        document.getElementById('card-producto').style.display = 'block';
+        warn.style.display = 'none';
+        cerrarModalBtn();
+      } else {
+        // Ubicacion vacía — no se puede sacar
+        warn.style.display = 'none';
+        alert('⚠️ Esta ubicación está vacía — no hay producto para mover.');
+        estado.ubicacion = null;
+        btn.classList.remove('selected');
+        btn.querySelector('span').textContent = 'Seleccionar ubicación...';
+        cerrarModalBtn();
+        return;
+      }
+    } else {
+      // Entrada — solo advertir si está ocupada
+      if (info) {
+        document.getElementById('viga-producto-actual').textContent = info.producto;
+        warn.style.display = 'block';
+      } else {
+        warn.style.display = 'none';
+      }
+      cerrarModalBtn();
+    }
+    actualizarCantidadSegunUbicacion();
+  } else if (tipo === 'destino') {
+    estado.destino = clave;
+    const btn = document.getElementById('btn-destino');
+    btn.classList.add('selected');
+    btn.querySelector('span').textContent = clave;
+    const warn = document.getElementById('viga-warning-destino');
+    if (mapaVigas[clave]) {
+      document.getElementById('viga-destino-actual').textContent = mapaVigas[clave].producto;
+      warn.style.display = 'block';
+    } else {
+      warn.style.display = 'none';
+    }
+    cerrarModalBtn();
+  } else if (tipo === 'se-producto') {
+    estado.producto = {clave, nombre};
+    const btnP = document.getElementById('btn-producto');
+    btnP.classList.add('selected');
+    btnP.querySelector('span').innerHTML = `<span class="field-btn-clave">${clave}</span>${nombre}`;
+    document.getElementById('card-producto').style.display = 'block';
+  }
+  cerrarModalBtn();
+}
+
+function abrirModalSE(ubicacion) {
+  estado.modalActivo = 'se-producto';
+  document.getElementById('modal-title').textContent = `Producto en ${ubicacion}`;
+  document.getElementById('modal-search-input').value = '';
+  document.getElementById('modal-overlay').classList.add('open');
+  const list = document.getElementById('modal-list');
+  const prods = especiales[ubicacion] || [];
+  if (prods.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div>No hay productos registrados aquí</div>';
+  } else {
+    list.innerHTML = prods.map(p => `
+      <div class="modal-item" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
+        <span class="item-clave">${p.clave}</span>
+        <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad} tar.)</span></span>
+      </div>
+    `).join('');
+  }
+}
+
+function cerrarModal(e) { if (e.target === document.getElementById('modal-overlay')) cerrarModalBtn(); }
+function cerrarModalBtn() { 
+  document.getElementById('modal-overlay').classList.remove('open');
+  vigasExpandido = false;
+}
+
+// ============================================================
+// CONFIRMACION
+// ============================================================
+function mostrarConfirmacion() {
+  if (!estado.empleado) { abrirModalEmpleado(); return; }
+  if (!estado.producto) { alert('Selecciona un producto'); return; }
+  if (!estado.ubicacion) { alert('Selecciona una ubicación'); return; }
+  if (estado.tipo === 'C' && !estado.destino) { alert('Selecciona la ubicación destino'); return; }
+
+  // Validar que no se haga salida/cambio de ubicación vacía (solo para vigas normales)
+  const esEspecial = UBICACIONES_ESPECIALES.includes(estado.ubicacion);
+  if ((estado.tipo === 'S' || estado.tipo === 'C') && !esEspecial && !mapaVigas[estado.ubicacion]) {
+    alert('⚠️ Esta ubicación está vacía');
+    return;
+  }
+
+  const tipoLabels = {E:'Entrada', S:'Salida', C:'Cambio'};
+  document.getElementById('c-tipo').textContent = tipoLabels[estado.tipo];
+  document.getElementById('c-producto').textContent = `${estado.producto.clave} — ${estado.producto.nombre}`;
+  document.getElementById('c-ubicacion').textContent = estado.ubicacion;
+  document.getElementById('c-cantidad').textContent = `${estado.cantidad} tarima(s)`;
+  document.getElementById('c-empleado').textContent = estado.empleado;
+
+  const nota = document.getElementById('notas-input').value.trim();
+  document.getElementById('c-nota-row').style.display = nota ? 'flex' : 'none';
+  if (nota) document.getElementById('c-nota').textContent = nota;
+
+  document.getElementById('c-destino-row').style.display = estado.tipo === 'C' ? 'flex' : 'none';
+  if (estado.tipo === 'C') document.getElementById('c-destino').textContent = estado.destino;
+
+  document.getElementById('form-view').style.display = 'none';
+  document.getElementById('confirm-view').style.display = 'block';
+}
+
+function cancelarConfirmacion() {
+  document.getElementById('form-view').style.display = 'block';
+  document.getElementById('confirm-view').style.display = 'none';
+}
+
+// ============================================================
+// CONFIRMAR Y ENVIAR A SHEETS
+// ============================================================
+async function confirmarRegistro() {
+  const btn = document.getElementById('btn-confirm');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>Guardando...';
+
+  const ahora = new Date();
+  const nota = document.getElementById('notas-input').value.trim();
+  const registro = {
+    fecha: ahora.toLocaleDateString('es-MX'),
+    hora: ahora.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'}),
+    empleado: estado.empleado,
+    tipo: estado.tipo,
+    clave: estado.producto.clave,
+    producto: estado.producto.nombre,
+    ubicacion: estado.ubicacion,
+    destino: estado.destino || '',
+    cantidad: estado.cantidad,
+    notas: nota
+  };
+
+  try {
+    const res = await fetch(SHEETS_URL, {
+      method: 'POST',
+      body: JSON.stringify(registro)
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      // Actualizar mapa local
+      actualizarMapaLocal(registro);
+
+      // Guardar en historial
+      historial.unshift({...registro, id: Date.now()});
+      localStorage.setItem('historial', JSON.stringify(historial));
+
+      // Reset
+      document.getElementById('form-view').style.display = 'block';
+      document.getElementById('confirm-view').style.display = 'none';
+      resetForm();
+
+      const banner = document.getElementById('success-banner');
+      banner.style.display = 'block';
+      setTimeout(() => banner.style.display = 'none', 3000);
+
+      renderHistorial();
+      renderMapa();
+      renderOtrasUbicaciones();
+    } else {
+      throw new Error(data.error || 'Error desconocido');
+    }
+  } catch(e) {
+    const errBanner = document.getElementById('error-banner');
+    errBanner.textContent = '❌ Error al guardar: ' + e.message;
+    errBanner.style.display = 'block';
+    setTimeout(() => errBanner.style.display = 'none', 4000);
+    document.getElementById('form-view').style.display = 'block';
+    document.getElementById('confirm-view').style.display = 'none';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✓ Confirmar';
+}
+
+function actualizarMapaLocal(reg) {
+  if (reg.tipo === 'E') {
+    mapaVigas[reg.ubicacion] = {clave: reg.clave, producto: reg.producto};
+  } else if (reg.tipo === 'S') {
+    delete mapaVigas[reg.ubicacion];
+  } else if (reg.tipo === 'C') {
+    delete mapaVigas[reg.ubicacion];
+    if (reg.destino) mapaVigas[reg.destino] = {clave: reg.clave, producto: reg.producto};
+  }
+  localStorage.setItem('mapaVigas', JSON.stringify(mapaVigas));
+}
+
+function resetForm() {
+  estado.producto = null; estado.ubicacion = null; estado.destino = null; estado.cantidad = 1;
+  document.getElementById('qty-display').textContent = '1';
+  document.getElementById('notas-input').value = '';
+  document.getElementById('btn-producto').classList.remove('selected');
+  document.getElementById('btn-producto').querySelector('span').textContent = 'Seleccionar producto...';
+  document.getElementById('btn-ubicacion').classList.remove('selected');
+  document.getElementById('btn-ubicacion').querySelector('span').textContent = 'Seleccionar ubicación...';
+  document.getElementById('btn-destino').classList.remove('selected');
+  document.getElementById('btn-destino').querySelector('span').textContent = 'Seleccionar destino...';
+  document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+  document.getElementById('qty-unit').textContent = 'tarima(s)';
+  document.getElementById('viga-warning').style.display = 'none';
+  document.getElementById('viga-warning-destino').style.display = 'none';
+}
+
+// ============================================================
+// MAPA VIGAS
+// ============================================================
+function renderMapa() {
+  const cols = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+  let html = '<tr><td class="header"></td>';
+  cols.forEach(c => html += `<td class="header">${c}</td>`);
+  html += '</tr>';
+
+  for (let r = 1; r <= 18; r++) {
+    html += `<tr><td class="header">${r}</td>`;
+    cols.forEach(c => {
+      const maxRow = ['A','B','C','D','E','F'].includes(c) ? 18 : 12;
+      if (r > maxRow) {
+        html += '<td style="background:var(--gray-100);border:none"></td>';
+      } else {
+        const key = `${c}${r}`;
+        const info = mapaVigas[key];
+        if (info) {
+          const short = info.producto.substring(0, 10);
+          html += `<td class="ocupada" title="${info.producto}"><div class="mapa-prod">${short}</div></td>`;
+        } else {
+          html += '<td class="vacia">·</td>';
+        }
+      }
+    });
+    html += '</tr>';
+  }
+  document.getElementById('mapa-table').innerHTML = html;
+}
+
+function renderOtrasUbicaciones() {
+  const otras = ['SE','BODEGA 2','COCINA'];
+  document.getElementById('otras-ubicaciones').innerHTML = otras.map(ub => {
+    const prods = especiales[ub] || [];
+    const contenido = prods.length > 0
+      ? prods.map(p => `<div style="font-size:12px;color:var(--green);margin-top:3px">· ${p.producto} (${p.cantidad})</div>`).join('')
+      : '<div style="font-size:12px;color:var(--gray-300)">Vacío</div>';
+    return `<div class="otras-row" style="flex-direction:column;align-items:flex-start">
+      <div style="font-weight:600;font-size:14px;font-family:DM Mono,monospace;color:var(--gray-700);margin-bottom:4px">${ub}</div>
+      ${contenido}
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// HISTORIAL
+// ============================================================
+function renderHistorial() {
+  const list = document.getElementById('historial-list');
+  if (historial.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>No hay movimientos hoy</div>';
+    return;
+  }
+  const tipoLabels = {E:'Entrada', S:'Salida', C:'Cambio'};
+  const tipoClass = {E:'entrada', S:'salida', C:'cambio'};
+  list.innerHTML = historial.map(r => `
+    <div class="log-item ${tipoClass[r.tipo]}">
+      <div class="log-top">
+        <span class="log-tipo ${tipoClass[r.tipo]}">${tipoLabels[r.tipo]}</span>
+        <span class="log-time">${r.hora}</span>
+      </div>
+      <div class="log-producto">${r.producto}</div>
+      <div class="log-detail">${r.tipo === 'C' ? `${r.ubicacion} → ${r.destino}` : r.ubicacion} · ${r.cantidad} tarima(s)</div>
+      ${r.notas ? `<div class="log-nota">"${r.notas}"</div>` : ''}
+      <div class="log-empleado">👤 ${r.empleado}</div>
+    </div>
+  `).join('');
+}
+
+function limpiarHistorial() {
+  if (confirm('¿Limpiar todos los movimientos de hoy?')) {
+    historial = [];
+    localStorage.setItem('historial', '[]');
+    renderHistorial();
+  }
+}
+
+// ============================================================
+// NAVEGACION
+// ============================================================
+function cambiarScreen(nombre) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`screen-${nombre}`).classList.add('active');
+  document.getElementById(`nav-${nombre}`).classList.add('active');
+  if (nombre === 'mapa') cargarMapaDesdeSheets();
+}
+</script>
+</body>
+</html>
