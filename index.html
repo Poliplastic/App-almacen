@@ -725,16 +725,16 @@ function actualizarCantidadSegunUbicacion() {
   const esViga = estado.ubicacion && !esEspecialOrigen;
   const esEntrada = estado.tipo === 'E';
   
-  if (esEntrada) {
-    // Entrada: cantidad siempre libre
-    document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
-    document.getElementById('qty-unit').textContent = 'tarima(s)';
-  } else if (esViga) {
-    // Salida/Cambio de viga: máximo 1
+  if (esViga) {
+    // Viga siempre máximo 1, sin importar si es entrada o salida
     estado.cantidad = 1;
     document.getElementById('qty-display').textContent = '1';
     document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = true; b.style.opacity = '0.3'; });
     document.getElementById('qty-unit').textContent = 'tarima (máx. 1 en viga)';
+  } else if (esEntrada) {
+    // Entrada a especial: cantidad libre
+    document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+    document.getElementById('qty-unit').textContent = 'tarima(s)';
   } else if (esEspecialOrigen && estado.producto) {
     // Salida/Cambio de especial: limitar al máximo disponible
     const prods = especiales[estado.ubicacion] || [];
