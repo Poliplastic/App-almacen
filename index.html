@@ -554,9 +554,10 @@ function filtrarModal() {
       `).join('') || '<div class="empty-state"><div class="empty-icon">📦</div>No hay productos aquí</div>';
     } else {
       items = PRODUCTOS.filter(p => p.nombre.toLowerCase().includes(q) || p.clave.toLowerCase().includes(q));
+      const esEntrada = estado.tipo === 'E';
       list.innerHTML = items.map(p => `
         <div class="modal-item" onclick="selItem('${p.clave}','${p.nombre.replace(/'/g,"\\'")}')">
-          
+          ${esEntrada ? `<span class="item-clave">${p.clave}</span>` : ''}
           <span class="item-nombre">${p.nombre}</span>
         </div>
       `).join('') || '<div class="empty-state"><div class="empty-icon">🔍</div>Sin resultados</div>';
@@ -762,7 +763,7 @@ function selEspecialProducto(ubicacion, clave, nombre) {
   estado.producto = {clave, nombre};
   const btnP = document.getElementById('btn-producto');
   btnP.classList.add('selected');
-  btnP.querySelector('span').innerHTML = `<span class="field-btn-clave">${clave}</span>${nombre}`;
+  btnP.querySelector('span').textContent = nombre;
   btnP.style.pointerEvents = 'none';
   btnP.style.opacity = '0.8';
   document.getElementById('card-producto').style.display = 'block';
@@ -795,7 +796,12 @@ function selItem(clave, nombre) {
     estado.producto = {clave, nombre};
     const btn = document.getElementById('btn-producto');
     btn.classList.add('selected');
-    btn.querySelector('span').innerHTML = `<span class="field-btn-clave">${clave}</span>${nombre}`;
+    // Mostrar clave solo en Entrada
+    if (estado.tipo === 'E') {
+      btn.querySelector('span').innerHTML = `<span class="field-btn-clave">${clave}</span>${nombre}`;
+    } else {
+      btn.querySelector('span').textContent = nombre;
+    }
   } else if (tipo === 'ubicacion') {
     estado.ubicacion = clave;
     const btn = document.getElementById('btn-ubicacion');
@@ -818,7 +824,7 @@ function selItem(clave, nombre) {
         estado.producto = {clave: info.clave, nombre: info.producto};
         const btnP = document.getElementById('btn-producto');
         btnP.classList.add('selected');
-        btnP.querySelector('span').innerHTML = `<span class="field-btn-clave">${info.clave}</span>${info.producto}`;
+        btnP.querySelector('span').textContent = info.producto;
         btnP.style.pointerEvents = 'none';
         btnP.style.opacity = '0.8';
         document.getElementById('card-producto').style.display = 'block';
