@@ -76,12 +76,13 @@
   .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; }
   .modal-title { font-size: 15px; font-weight: 600; }
   .modal-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--gray-100); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--gray-500); }
-  .modal-search { padding: 12px 16px; border-bottom: 1px solid var(--gray-100); }
-  .modal-search input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; }
+  .modal-search { padding: 12px 16px; border-bottom: 1px solid var(--gray-100); flex-shrink: 0; }
+  .modal-search input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; box-sizing: border-box; }
   .modal-search input:focus { border-color: var(--green); }
-  .modal-list { overflow-y: auto; flex: 1; }
+  .modal-list { overflow-y: auto; flex: 1; min-height: 0; }
   .modal-item { padding: 13px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid var(--gray-50); }
   .modal-item:active { background: var(--green-light); }
+  .modal-item.zona { justify-content: center; gap: 0; }
   .item-clave { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--green); background: var(--green-light); padding: 3px 8px; border-radius: 4px; min-width: 48px; text-align: center; flex-shrink: 0; }
   .item-nombre { font-size: 14px; color: var(--gray-900); }
 
@@ -596,12 +597,26 @@ function filtrarModal() {
     } else {
       // Sin búsqueda — mostrar especiales + botón de vigas
       const esDestino = estado.modalActivo === 'destino';
+      const esEntrada = estado.tipo === 'E';
+      const mostrarSoloZona = esDestino || esEntrada;
       
-      let html = esDestino ? `
-        <div class="modal-item" onclick="selItem('SE','SE')" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px">SE</span>
-          <span class="item-nombre" style="font-weight:600;color:var(--green)"></span>
+      let html = mostrarSoloZona ? `
+        <div class="modal-item zona" onclick="selItem('SE','SE')" style="border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">SE</span>
         </div>` : `
+        <div class="modal-item" onclick="toggleEspecial('SE')" style="border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="min-width:56px">SE</span>
+          <span class="item-nombre" style="font-weight:600;color:var(--green);flex:1">${(especiales['SE']||[]).length} producto(s)</span>
+          <span style="color:var(--gray-400);font-size:12px" id="arrow-SE">▼</span>
+        </div>
+        <div id="lista-SE" style="display:none">
+          ${(especiales['SE']||[]).map(p => `
+            <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('SE','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
+              <span class="item-clave">${p.clave}</span>
+              <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
+            </div>
+          `).join('')}
+        </div>`; : `
         <div class="modal-item" onclick="toggleEspecial('SE')" style="border-bottom:1px solid var(--gray-100)">
           <span class="item-clave" style="min-width:56px">SE</span>
           <span class="item-nombre" style="font-weight:600;color:var(--green);flex:1">${(especiales['SE']||[]).length} producto(s)</span>
@@ -617,10 +632,9 @@ function filtrarModal() {
         </div>`;
 
       html += `
-        <div class="modal-item" onclick="toggleVigas()" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px">VIGAS</span>
-          <span class="item-nombre" style="font-weight:600;color:var(--green);flex:1">Ver espacios</span>
-          <span style="color:var(--gray-400);font-size:12px;margin-left:auto" id="vigas-arrow">▼</span>
+        <div class="modal-item zona" onclick="toggleVigas()" style="border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">VIGAS</span>
+          <span style="color:var(--gray-400);font-size:12px;margin-left:8px" id="vigas-arrow">▼</span>
         </div>
         <div id="vigas-lista" style="display:none">
           ${UBICACIONES_VIGAS.map(u => {
@@ -630,14 +644,12 @@ function filtrarModal() {
           }).join('')}
         </div>`;
 
-      html += esDestino ? `
-        <div class="modal-item" onclick="selItem('BODEGA\\x202','BODEGA\\x202')" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px">BODEGA 2</span>
-          <span class="item-nombre" style="font-weight:600;color:var(--green)"></span>
+      html += mostrarSoloZona ? `
+        <div class="modal-item zona" onclick="selItem('BODEGA\\x202','BODEGA\\x202')" style="border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">BODEGA 2</span>
         </div>
-        <div class="modal-item" onclick="selItem('COCINA','COCINA')" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px">COCINA</span>
-          <span class="item-nombre" style="font-weight:600;color:var(--green)"></span>
+        <div class="modal-item zona" onclick="selItem('COCINA','COCINA')" style="border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">COCINA</span>
         </div>` : `
         <div class="modal-item" onclick="toggleEspecial('BODEGA 2')" style="border-bottom:1px solid var(--gray-100)">
           <span class="item-clave" style="min-width:56px">BODEGA 2</span>
@@ -702,37 +714,29 @@ function renderUbicacionItem(u) {
 function actualizarCantidadSegunUbicacion() {
   const esEspecialOrigen = UBICACIONES_ESPECIALES.includes(estado.ubicacion);
   const esViga = estado.ubicacion && !esEspecialOrigen;
+  const esEntrada = estado.tipo === 'E';
   
-  if (esViga) {
-    // Vigas: máximo 1
+  if (esEntrada) {
+    // Entrada: cantidad siempre libre
+    document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+    document.getElementById('qty-unit').textContent = 'tarima(s)';
+  } else if (esViga) {
+    // Salida/Cambio de viga: máximo 1
     estado.cantidad = 1;
     document.getElementById('qty-display').textContent = '1';
-    document.querySelectorAll('.qty-btn').forEach(b => {
-      b.disabled = true;
-      b.style.opacity = '0.3';
-    });
+    document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = true; b.style.opacity = '0.3'; });
     document.getElementById('qty-unit').textContent = 'tarima (máx. 1 en viga)';
   } else if (esEspecialOrigen && estado.producto) {
-    // Especiales: limitar al máximo disponible
+    // Salida/Cambio de especial: limitar al máximo disponible
     const prods = especiales[estado.ubicacion] || [];
     const prod = prods.find(p => p.clave === estado.producto.clave);
     const maxDisp = prod ? prod.cantidad : 999;
-    
-    // Ajustar cantidad si excede el máximo
     if (estado.cantidad > maxDisp) estado.cantidad = maxDisp;
     document.getElementById('qty-display').textContent = estado.cantidad;
     document.getElementById('qty-unit').textContent = `tarima(s) — máx. ${maxDisp}`;
-    
-    // Habilitar botones pero controlar el límite
-    document.querySelectorAll('.qty-btn').forEach(b => {
-      b.disabled = false;
-      b.style.opacity = '1';
-    });
+    document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
   } else {
-    document.querySelectorAll('.qty-btn').forEach(b => {
-      b.disabled = false;
-      b.style.opacity = '1';
-    });
+    document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
     document.getElementById('qty-unit').textContent = 'tarima(s)';
   }
 }
@@ -843,6 +847,17 @@ function selItem(clave, nombre) {
       warn.style.display = 'block';
     } else {
       warn.style.display = 'none';
+    }
+    // Si destino es viga, limitar cantidad a 1
+    const esDestinoEspecial = UBICACIONES_ESPECIALES.includes(clave);
+    if (!esDestinoEspecial) {
+      estado.cantidad = 1;
+      document.getElementById('qty-display').textContent = '1';
+      document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = true; b.style.opacity = '0.3'; });
+      document.getElementById('qty-unit').textContent = 'tarima (máx. 1 en viga)';
+    } else {
+      document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+      document.getElementById('qty-unit').textContent = 'tarima(s)';
     }
     cerrarModalBtn();
   } else if (tipo === 'se-producto') {
