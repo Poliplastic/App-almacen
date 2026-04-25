@@ -612,9 +612,10 @@ function filtrarModal() {
           <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">SE</span>
         </div>`;
       } else {
-        html += `<div class="modal-item zona" onclick="toggleEspecial('SE')" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">SE</span>
-          <span style="color:var(--gray-400);font-size:12px;margin-left:8px" id="arrow-SE">▼</span>
+        html += `<div class="modal-item" onclick="toggleEspecial('SE')" style="border-bottom:1px solid var(--gray-100);justify-content:center;gap:10px">
+          <span class="item-clave" style="font-size:13px;padding:5px 12px">SE</span>
+          <span style="font-weight:600;color:var(--green);font-size:14px">${(especiales['SE']||[]).length} tarima(s)</span>
+          <span style="color:var(--gray-400);font-size:12px" id="arrow-SE">▼</span>
         </div>
         <div id="lista-SE" style="display:none">
           ${(especiales['SE']||[]).map(p => `
@@ -637,15 +638,17 @@ function filtrarModal() {
           }).join('')}
         </div>`;
       html += esSalidaCambioOrigen ? `
-        <div class="modal-item zona" onclick="toggleVigas()" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">VIGAS</span>
-          <span style="color:var(--gray-400);font-size:12px;margin-left:8px" id="vigas-arrow">▼</span>
+        <div class="modal-item" onclick="toggleVigas()" style="border-bottom:1px solid var(--gray-100);justify-content:center;gap:10px">
+          <span class="item-clave" style="font-size:13px;padding:5px 12px">VIGAS</span>
+          <span style="font-weight:600;color:var(--green);font-size:14px">${vigasOcupadas} tarima(s)</span>
+          <span style="color:var(--gray-400);font-size:12px" id="vigas-arrow">▼</span>
         </div>${vigasHtml}` : `
         <div class="modal-item zona" onclick="toggleVigas()" style="border-bottom:1px solid var(--gray-100)">
           <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">VIGAS</span>
           <span style="color:var(--gray-400);font-size:12px;margin-left:8px" id="vigas-arrow">▼</span>
         </div>${vigasHtml}`;
 
+      // BODEGA 2 y COCINA
       if (mostrarSoloZona) {
         html += `<div class="modal-item zona" onclick="selItem('BODEGA\\x202','BODEGA\\x202')" style="border-bottom:1px solid var(--gray-100)">
           <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">BODEGA 2</span>
@@ -654,9 +657,10 @@ function filtrarModal() {
           <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">COCINA</span>
         </div>`;
       } else {
-        html += `<div class="modal-item zona" onclick="toggleEspecial('BODEGA 2')" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">BODEGA 2</span>
-          <span style="color:var(--gray-400);font-size:12px;margin-left:8px" id="arrow-BODEGA2">▼</span>
+        html += `<div class="modal-item" onclick="toggleEspecial('BODEGA 2')" style="border-bottom:1px solid var(--gray-100);justify-content:center;gap:10px">
+          <span class="item-clave" style="font-size:13px;padding:5px 12px">BODEGA 2</span>
+          <span style="font-weight:600;color:var(--green);font-size:14px">${(especiales['BODEGA 2']||[]).length} tarima(s)</span>
+          <span style="color:var(--gray-400);font-size:12px" id="arrow-BODEGA2">▼</span>
         </div>
         <div id="lista-BODEGA2" style="display:none">
           ${(especiales['BODEGA 2']||[]).map(p => `
@@ -666,9 +670,10 @@ function filtrarModal() {
             </div>
           `).join('')}
         </div>
-        <div class="modal-item zona" onclick="toggleEspecial('COCINA')" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">COCINA</span>
-          <span style="color:var(--gray-400);font-size:12px;margin-left:8px" id="arrow-COCINA">▼</span>
+        <div class="modal-item" onclick="toggleEspecial('COCINA')" style="border-bottom:1px solid var(--gray-100);justify-content:center;gap:10px">
+          <span class="item-clave" style="font-size:13px;padding:5px 12px">COCINA</span>
+          <span style="font-weight:600;color:var(--green);font-size:14px">${(especiales['COCINA']||[]).length} tarima(s)</span>
+          <span style="color:var(--gray-400);font-size:12px" id="arrow-COCINA">▼</span>
         </div>
         <div id="lista-COCINA" style="display:none">
           ${(especiales['COCINA']||[]).map(p => `
@@ -694,7 +699,7 @@ function renderUbicacionItem(u) {
   if (esEspecial) {
     const prods = especiales[u] || [];
     tieneProducto = prods.length > 0;
-    subtexto = tieneProducto ? `${prods.length} producto(s)` : 'Vacío';
+    subtexto = tieneProducto ? `${prods.length} tarima(s)` : 'Vacío';
   } else {
     tieneProducto = !!info;
     subtexto = info ? info.producto : 'Vacío';
