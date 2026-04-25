@@ -315,7 +315,10 @@
       <button class="modal-close" onclick="cerrarModalBtn()">✕</button>
     </div>
     <div class="modal-search">
-      <input type="text" id="modal-search-input" placeholder="Buscar..." oninput="filtrarModal()">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="modal-search-input" placeholder="Buscar..." oninput="filtrarModal()" style="flex:1">
+        <button onclick="borrarUltimaLetra()" style="width:40px;height:40px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:var(--gray-50);font-size:16px;cursor:pointer;flex-shrink:0">⌫</button>
+      </div>
     </div>
     <div class="modal-list" id="modal-list"></div>
   </div>
@@ -531,14 +534,27 @@ function filtrarModal() {
   const q = document.getElementById('modal-search-input').value.toLowerCase();
   const list = document.getElementById('modal-list');
   
-  if (estado.modalActivo === 'producto') {
-    const items = PRODUCTOS.filter(p => p.nombre.toLowerCase().includes(q) || p.clave.toLowerCase().includes(q));
-    list.innerHTML = items.map(p => `
-      <div class="modal-item" onclick="selItem('${p.clave}','${p.nombre.replace(/'/g,"\\'")}')">
-        <span class="item-clave">${p.clave}</span>
-        <span class="item-nombre">${p.nombre}</span>
-      </div>
-    `).join('') || '<div class="empty-state"><div class="empty-icon">🔍</div>Sin resultados</div>';
+  if (estado.modalActivo === 'producto' || estado.modalActivo === 'se-producto') {
+    // Para se-producto mostrar solo los de esa ubicacion
+    let items;
+    if (estado.modalActivo === 'se-producto' && estado.ubicacion) {
+      const prods = especiales[estado.ubicacion] || [];
+      items = prods.filter(p => p.producto.toLowerCase().includes(q) || p.clave.toLowerCase().includes(q));
+      list.innerHTML = items.map(p => `
+        <div class="modal-item" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
+          <span class="item-clave">${p.clave}</span>
+          <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad} tar.)</span></span>
+        </div>
+      `).join('') || '<div class="empty-state"><div class="empty-icon">📦</div>No hay productos aquí</div>';
+    } else {
+      items = PRODUCTOS.filter(p => p.nombre.toLowerCase().includes(q) || p.clave.toLowerCase().includes(q));
+      list.innerHTML = items.map(p => `
+        <div class="modal-item" onclick="selItem('${p.clave}','${p.nombre.replace(/'/g,"\\'")}')">
+          <span class="item-clave">${p.clave}</span>
+          <span class="item-nombre">${p.nombre}</span>
+        </div>
+      `).join('') || '<div class="empty-state"><div class="empty-icon">🔍</div>Sin resultados</div>';
+    }
   } else {
     // Ubicaciones agrupadas
     if (q) {
@@ -547,19 +563,55 @@ function filtrarModal() {
       list.innerHTML = allUbs.map(u => renderUbicacionItem(u)).join('');
     } else {
       // Sin búsqueda — mostrar especiales + botón de vigas
-      let html = renderUbicacionItem('SE');
-      html += `
-        <div class="modal-item" onclick="toggleVigas()" style="background:var(--gray-50);border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="background:var(--gray-200);color:var(--gray-700);min-width:56px">VIGAS</span>
-          <span class="item-nombre" style="font-weight:600;color:var(--gray-700)">Ver espacios</span>
+      let html = `
+        <div class="modal-item" onclick="toggleEspecial('SE')" style="border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="min-width:56px">SE</span>
+          <span class="item-nombre" style="font-weight:600;color:var(--green);flex:1">${(especiales['SE']||[]).length} producto(s)</span>
+          <span style="color:var(--gray-400);font-size:12px" id="arrow-SE">▼</span>
+        </div>
+        <div id="lista-SE" style="display:none">
+          ${(especiales['SE']||[]).map(p => `
+            <div class="modal-item" style="padding-left:24px" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
+              <span class="item-clave">${p.clave}</span>
+              <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="modal-item" onclick="toggleVigas()" style="border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="min-width:56px">VIGAS</span>
+          <span class="item-nombre" style="font-weight:600;color:var(--green);flex:1">Ver espacios</span>
           <span style="color:var(--gray-400);font-size:12px;margin-left:auto" id="vigas-arrow">▼</span>
         </div>
         <div id="vigas-lista" style="display:none">
           ${UBICACIONES_VIGAS.map(u => renderUbicacionItem(u)).join('')}
         </div>
+        <div class="modal-item" onclick="toggleEspecial('BODEGA 2')" style="border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="min-width:56px">BODEGA 2</span>
+          <span class="item-nombre" style="font-weight:600;color:var(--green);flex:1">${(especiales['BODEGA 2']||[]).length} producto(s)</span>
+          <span style="color:var(--gray-400);font-size:12px" id="arrow-BODEGA2">▼</span>
+        </div>
+        <div id="lista-BODEGA2" style="display:none">
+          ${(especiales['BODEGA 2']||[]).map(p => `
+            <div class="modal-item" style="padding-left:24px" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
+              <span class="item-clave">${p.clave}</span>
+              <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="modal-item" onclick="toggleEspecial('COCINA')" style="border-bottom:1px solid var(--gray-100)">
+          <span class="item-clave" style="min-width:56px">COCINA</span>
+          <span class="item-nombre" style="font-weight:600;color:var(--green);flex:1">${(especiales['COCINA']||[]).length} producto(s)</span>
+          <span style="color:var(--gray-400);font-size:12px" id="arrow-COCINA">▼</span>
+        </div>
+        <div id="lista-COCINA" style="display:none">
+          ${(especiales['COCINA']||[]).map(p => `
+            <div class="modal-item" style="padding-left:24px" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
+              <span class="item-clave">${p.clave}</span>
+              <span class="item-nombre">${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
+            </div>
+          `).join('')}
+        </div>
       `;
-      html += renderUbicacionItem('BODEGA 2');
-      html += renderUbicacionItem('COCINA');
       list.innerHTML = html;
     }
   }
@@ -616,6 +668,16 @@ function actualizarCantidadSegunUbicacion() {
   }
 }
 
+function toggleEspecial(ub) {
+  const id = ub.replace(' ', '');
+  const lista = document.getElementById(`lista-${id}`);
+  const arrow = document.getElementById(`arrow-${id}`);
+  if (!lista) return;
+  const abierto = lista.style.display !== 'none';
+  lista.style.display = abierto ? 'none' : 'block';
+  if (arrow) arrow.textContent = abierto ? '▼' : '▲';
+}
+
 function toggleVigas() {
   const lista = document.getElementById('vigas-lista');
   const arrow = document.getElementById('vigas-arrow');
@@ -649,7 +711,7 @@ function selItem(clave, nombre) {
         abrirModalSE(clave);
         return;
       } else if (info) {
-        // Ubicacion tiene producto — auto-llenar y bloquear
+        // Ubicacion tiene producto — auto-llenar y bloquear (solo vigas, no especiales)
         estado.producto = {clave: info.clave, nombre: info.producto};
         const btnP = document.getElementById('btn-producto');
         btnP.classList.add('selected');
@@ -698,6 +760,8 @@ function selItem(clave, nombre) {
     const btnP = document.getElementById('btn-producto');
     btnP.classList.add('selected');
     btnP.querySelector('span').innerHTML = `<span class="field-btn-clave">${clave}</span>${nombre}`;
+    btnP.style.pointerEvents = '';
+    btnP.style.opacity = '';
     document.getElementById('card-producto').style.display = 'block';
   }
   cerrarModalBtn();
@@ -720,6 +784,12 @@ function abrirModalSE(ubicacion) {
       </div>
     `).join('');
   }
+}
+
+function borrarUltimaLetra() {
+  const input = document.getElementById('modal-search-input');
+  input.value = input.value.slice(0, -1);
+  filtrarModal();
 }
 
 function cerrarModal(e) { if (e.target === document.getElementById('modal-overlay')) cerrarModalBtn(); }
