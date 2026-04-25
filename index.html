@@ -565,11 +565,11 @@ function filtrarModal() {
   } else {
     // Ubicaciones agrupadas
     if (q) {
-      // Buscar en vigas — por ubicacion O por producto
+      // Buscar en vigas — por ubicacion O por producto O por clave
       const vigasFiltradas = UBICACIONES_VIGAS.filter(u => {
         if (u.toLowerCase().includes(q)) return true;
         const info = mapaVigas[u];
-        return info && info.producto.toLowerCase().includes(q);
+        return info && (info.producto.toLowerCase().includes(q) || (info.clave && info.clave.toLowerCase().includes(q)));
       });
       let html = '';
       
@@ -1099,18 +1099,18 @@ function buscarProducto() {
   if (!q) { resultados.innerHTML = ''; return; }
 
   const palabras = q.split(' ').filter(p => p.length > 0);
-  const coincide = (texto) => palabras.every(p => texto.toLowerCase().includes(p));
+  const coincide = (texto, clave) => palabras.every(p => texto.toLowerCase().includes(p) || (clave && clave.toLowerCase().includes(p)));
 
   // Buscar en vigas
   const vigasEncontradas = Object.entries(mapaVigas)
-    .filter(([ub, info]) => coincide(info.producto))
+    .filter(([ub, info]) => coincide(info.producto, info.clave))
     .map(([ub, info]) => ({ubicacion: ub, producto: info.producto, clave: info.clave}));
 
   // Buscar en especiales
   const especialesEncontrados = [];
   Object.entries(especiales).forEach(([ub, prods]) => {
     prods.forEach(p => {
-      if (coincide(p.producto)) {
+      if (coincide(p.producto, p.clave)) {
         especialesEncontrados.push({ubicacion: ub, producto: p.producto, clave: p.clave, cantidad: p.cantidad});
       }
     });
