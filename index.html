@@ -510,7 +510,14 @@ function selTipo(tipo, el) {
 // CANTIDAD
 // ============================================================
 function cambiarQty(delta) {
-  estado.cantidad = Math.max(1, estado.cantidad + delta);
+  const esEspecialOrigen = UBICACIONES_ESPECIALES.includes(estado.ubicacion);
+  let max = 999;
+  if (esEspecialOrigen && estado.producto) {
+    const prods = especiales[estado.ubicacion] || [];
+    const prod = prods.find(p => p.clave === estado.producto.clave);
+    if (prod) max = prod.cantidad;
+  }
+  estado.cantidad = Math.max(1, Math.min(max, estado.cantidad + delta));
   document.getElementById('qty-display').textContent = estado.cantidad;
 }
 
@@ -662,8 +669,8 @@ function actualizarCantidadSegunUbicacion() {
   const esEspecialOrigen = UBICACIONES_ESPECIALES.includes(estado.ubicacion);
   const esViga = estado.ubicacion && !esEspecialOrigen;
   
-  // Solo bloquear cantidad en vigas específicas, no en SE/Bodega/Cocina
   if (esViga) {
+    // Vigas: máximo 1
     estado.cantidad = 1;
     document.getElementById('qty-display').textContent = '1';
     document.querySelectorAll('.qty-btn').forEach(b => {
@@ -671,6 +678,22 @@ function actualizarCantidadSegunUbicacion() {
       b.style.opacity = '0.3';
     });
     document.getElementById('qty-unit').textContent = 'tarima (máx. 1 en viga)';
+  } else if (esEspecialOrigen && estado.producto) {
+    // Especiales: limitar al máximo disponible
+    const prods = especiales[estado.ubicacion] || [];
+    const prod = prods.find(p => p.clave === estado.producto.clave);
+    const maxDisp = prod ? prod.cantidad : 999;
+    
+    // Ajustar cantidad si excede el máximo
+    if (estado.cantidad > maxDisp) estado.cantidad = maxDisp;
+    document.getElementById('qty-display').textContent = estado.cantidad;
+    document.getElementById('qty-unit').textContent = `tarima(s) — máx. ${maxDisp}`;
+    
+    // Habilitar botones pero controlar el límite
+    document.querySelectorAll('.qty-btn').forEach(b => {
+      b.disabled = false;
+      b.style.opacity = '1';
+    });
   } else {
     document.querySelectorAll('.qty-btn').forEach(b => {
       b.disabled = false;
@@ -697,6 +720,7 @@ function selEspecialProducto(ubicacion, clave, nombre) {
   btnP.style.opacity = '0.8';
   document.getElementById('card-producto').style.display = 'block';
 
+  actualizarCantidadSegunUbicacion();
   cerrarModalBtn();
 }
 
