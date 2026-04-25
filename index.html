@@ -567,7 +567,7 @@ function filtrarModal() {
       list.innerHTML = items.map(p => `
         <div class="modal-item" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
           
-          <span class="item-nombre" style="color:var(--gray-900);font-size:13px">— ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad} tar.)</span></span>
+          <span class="item-nombre" style="color:var(--gray-900);font-size:13px">• ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad} tar.)</span></span>
         </div>
       `).join('') || '<div class="empty-state"><div class="empty-icon">📦</div>No hay productos aquí</div>';
     } else {
@@ -614,7 +614,7 @@ function filtrarModal() {
             html += `
               <div class="modal-item" onclick="selEspecialProducto('${ub.replace(/'/g,"\\'")}','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
                 <span class="item-clave" style="min-width:56px">${ub}</span>
-                <span class="item-nombre" style="color:var(--gray-900);font-size:13px">— ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
+                <span class="item-nombre" style="color:var(--gray-900);font-size:13px">• ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
               </div>`;
           });
         });
@@ -645,7 +645,7 @@ function filtrarModal() {
           ${(especiales['SE']||[]).map(p => `
             <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('SE','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
               
-              <span class="item-nombre" style="color:var(--gray-900);font-size:13px">— ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
+              <span class="item-nombre" style="color:var(--gray-900);font-size:13px">• ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
             </div>
           `).join('')}
         </div>`;
@@ -690,7 +690,7 @@ function filtrarModal() {
           ${(especiales['BODEGA 2']||[]).map(p => `
             <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('BODEGA\\x202','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
               
-              <span class="item-nombre" style="color:var(--gray-900);font-size:13px">— ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
+              <span class="item-nombre" style="color:var(--gray-900);font-size:13px">• ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
             </div>
           `).join('')}
         </div>
@@ -703,7 +703,7 @@ function filtrarModal() {
           ${(especiales['COCINA']||[]).map(p => `
             <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('COCINA','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
               
-              <span class="item-nombre" style="color:var(--gray-900);font-size:13px">— ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
+              <span class="item-nombre" style="color:var(--gray-900);font-size:13px">• ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
             </div>
           `).join('')}
         </div>`;
@@ -933,7 +933,7 @@ function abrirModalSE(ubicacion) {
     list.innerHTML = prods.map(p => `
       <div class="modal-item" onclick="selItem('${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
         
-        <span class="item-nombre" style="color:var(--gray-900);font-size:13px">— ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad} tar.)</span></span>
+        <span class="item-nombre" style="color:var(--gray-900);font-size:13px">• ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad} tar.)</span></span>
       </div>
     `).join('');
   }
