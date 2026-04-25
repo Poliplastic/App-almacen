@@ -586,8 +586,8 @@ function filtrarModal() {
               <span class="item-nombre" style="color:var(--green)">Enviar aquí</span>
             </div>`;
         });
-      } else {
-        // Para origen, mostrar productos de especiales
+      } else if (estado.tipo !== 'E') {
+        // Para Salida/Cambio origen, mostrar productos de especiales
         UBICACIONES_ESPECIALES.forEach(ub => {
           const prods = (especiales[ub] || []).filter(p => 
             p.producto.toLowerCase().includes(q) || p.clave.toLowerCase().includes(q) || ub.toLowerCase().includes(q)
