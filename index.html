@@ -649,7 +649,7 @@ function selItem(clave, nombre) {
         abrirModalSE(clave);
         return;
       } else if (info) {
-        // Ubicacion tiene producto — auto-llenar y bloquear
+        // Ubicacion tiene producto — auto-llenar y bloquear (solo vigas, no especiales)
         estado.producto = {clave: info.clave, nombre: info.producto};
         const btnP = document.getElementById('btn-producto');
         btnP.classList.add('selected');
@@ -698,6 +698,8 @@ function selItem(clave, nombre) {
     const btnP = document.getElementById('btn-producto');
     btnP.classList.add('selected');
     btnP.querySelector('span').innerHTML = `<span class="field-btn-clave">${clave}</span>${nombre}`;
+    btnP.style.pointerEvents = ''; // mantener desbloqueado para especiales
+    btnP.style.opacity = '';
     document.getElementById('card-producto').style.display = 'block';
   }
   cerrarModalBtn();
