@@ -611,11 +611,11 @@ function filtrarModal() {
       // SE
       if (mostrarSoloZona) {
         html += `<div class="modal-item zona" onclick="selItem('SE','SE')" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">SE</span>
+          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">Sin Espacio</span>
         </div>`;
       } else {
         html += `<div class="modal-item" onclick="toggleEspecial('SE')" style="border-bottom:1px solid var(--gray-100);justify-content:center;gap:10px">
-          <span class="item-clave" style="font-size:13px;padding:5px 12px">SE</span>
+          <span class="item-clave" style="font-size:13px;padding:5px 12px">Sin Espacio</span>
           <span style="font-weight:600;color:var(--green);font-size:14px">${(especiales['SE']||[]).length} tarima(s)</span>
           <span style="color:var(--gray-400);font-size:12px" id="arrow-SE">▼</span>
         </div>
@@ -653,14 +653,14 @@ function filtrarModal() {
       // BODEGA 2 y COCINA
       if (mostrarSoloZona) {
         html += `<div class="modal-item zona" onclick="selItem('BODEGA\\x202','BODEGA\\x202')" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">BODEGA 2</span>
+          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">B2</span>
         </div>
         <div class="modal-item zona" onclick="selItem('COCINA','COCINA')" style="border-bottom:1px solid var(--gray-100)">
-          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">COCINA</span>
+          <span class="item-clave" style="min-width:56px;font-size:13px;padding:6px 12px">COC</span>
         </div>`;
       } else {
         html += `<div class="modal-item" onclick="toggleEspecial('BODEGA 2')" style="border-bottom:1px solid var(--gray-100);justify-content:center;gap:10px">
-          <span class="item-clave" style="font-size:13px;padding:5px 12px">BODEGA 2</span>
+          <span class="item-clave" style="font-size:13px;padding:5px 12px">B2</span>
           <span style="font-weight:600;color:var(--green);font-size:14px">${(especiales['BODEGA 2']||[]).length} tarima(s)</span>
           <span style="color:var(--gray-400);font-size:12px" id="arrow-BODEGA2">▼</span>
         </div>
@@ -673,7 +673,7 @@ function filtrarModal() {
           `).join('')}
         </div>
         <div class="modal-item" onclick="toggleEspecial('COCINA')" style="border-bottom:1px solid var(--gray-100);justify-content:center;gap:10px">
-          <span class="item-clave" style="font-size:13px;padding:5px 12px">COCINA</span>
+          <span class="item-clave" style="font-size:13px;padding:5px 12px">COC</span>
           <span style="font-weight:600;color:var(--green);font-size:14px">${(especiales['COCINA']||[]).length} tarima(s)</span>
           <span style="color:var(--gray-400);font-size:12px" id="arrow-COCINA">▼</span>
         </div>
@@ -711,12 +711,17 @@ function renderUbicacionItem(u) {
     (estado.modalActivo === 'ubicacion' && estado.tipo === 'E' && tieneProducto && !esEspecial);
 
   const uEscaped = u.replace(/'/g, "\\'").replace(/ /g, '\\x20');
+  // Letra negra para vigas, verde para especiales
+  const chipStyle = esSoloLectura 
+    ? 'background:var(--gray-200);color:var(--gray-500)' 
+    : !esEspecial ? 'background:var(--gray-100);color:var(--gray-900);border:1px solid var(--gray-300)' 
+    : '';
   return `
     <div class="modal-item" 
       onclick="${esSoloLectura ? '' : `selItem('${uEscaped}','${uEscaped}')`}"
       style="${esSoloLectura ? 'opacity:0.35;cursor:default' : ''}">
-      <span class="item-clave" style="min-width:56px;${esSoloLectura ? 'background:var(--gray-200);color:var(--gray-500)' : ''}">${u}</span>
-      <span class="item-nombre" style="color:${tieneProducto ? 'var(--green)' : 'var(--gray-400)'};font-size:13px">${subtexto}</span>
+      <span class="item-clave" style="min-width:56px;${chipStyle}">${u}</span>
+      <span class="item-nombre" style="color:${tieneProducto ? (esEspecial ? 'var(--green)' : 'var(--gray-900)') : 'var(--gray-400)'};font-size:13px">${subtexto}</span>
     </div>
   `;
 }
@@ -1097,18 +1102,18 @@ function buscarProducto() {
   if (!q) { resultados.innerHTML = ''; return; }
 
   const palabras = q.split(' ').filter(p => p.length > 0);
-  const coincide = (texto) => palabras.every(p => texto.toLowerCase().includes(p));
+  const coincide = (texto, clave) => palabras.every(p => texto.toLowerCase().includes(p) || (clave && clave.toLowerCase().includes(p)));
 
   // Buscar en vigas
   const vigasEncontradas = Object.entries(mapaVigas)
-    .filter(([ub, info]) => coincide(info.producto))
+    .filter(([ub, info]) => coincide(info.producto, info.clave))
     .map(([ub, info]) => ({ubicacion: ub, producto: info.producto, clave: info.clave}));
 
   // Buscar en especiales
   const especialesEncontrados = [];
   Object.entries(especiales).forEach(([ub, prods]) => {
     prods.forEach(p => {
-      if (coincide(p.producto)) {
+      if (coincide(p.producto, p.clave)) {
         especialesEncontrados.push({ubicacion: ub, producto: p.producto, clave: p.clave, cantidad: p.cantidad});
       }
     });
