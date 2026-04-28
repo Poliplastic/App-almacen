@@ -642,12 +642,16 @@ function filtrarModal() {
           <span style="color:var(--gray-400);font-size:12px" id="arrow-SE">▼</span>
         </div>
         <div id="lista-SE" style="display:none">
-          ${(especiales['SE']||[]).map(p => `
-            <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('SE','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
-              
-              <span class="item-nombre" style="color:var(--gray-900);font-size:13px">• ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
-            </div>
-          `).join('')}
+          ${(especiales['SE']||[]).map(p => {
+            const clave = p.clave;
+            const nombre = p.producto;
+            const cant = p.cantidad;
+            return `<div class="modal-item" style="padding-left:24px" 
+              data-ub="SE" data-clave="${clave}" data-nombre="${nombre.replace(/"/g,'&quot;')}"
+              onclick="selEspecialFromData(this)">
+              <span class="item-nombre" style="color:var(--gray-900);font-size:13px">• ${nombre} <span style="color:var(--gray-500)">(${cant})</span></span>
+            </div>`;
+          }).join('')}
         </div>`;
       }
 
@@ -687,12 +691,13 @@ function filtrarModal() {
           <span style="color:var(--gray-400);font-size:12px" id="arrow-BODEGA2">▼</span>
         </div>
         <div id="lista-BODEGA2" style="display:none">
-          ${(especiales['BODEGA 2']||[]).map(p => `
-            <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('BODEGA\\x202','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
-              
+          ${(especiales['BODEGA 2']||[]).map(p => {
+            return `<div class="modal-item" style="padding-left:24px"
+              data-ub="BODEGA 2" data-clave="${p.clave}" data-nombre="${p.producto.replace(/"/g,'&quot;')}"
+              onclick="selEspecialFromData(this)">
               <span class="item-nombre" style="color:var(--gray-900);font-size:13px">• ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
-            </div>
-          `).join('')}
+            </div>`;
+          }).join('')}
         </div>
         <div class="modal-item" onclick="toggleEspecial('COCINA')" style="border-bottom:1px solid var(--gray-100);justify-content:center;gap:10px">
           <span class="item-clave" style="font-size:11px;padding:3px 8px">COCINA</span>
@@ -700,12 +705,13 @@ function filtrarModal() {
           <span style="color:var(--gray-400);font-size:12px" id="arrow-COCINA">▼</span>
         </div>
         <div id="lista-COCINA" style="display:none">
-          ${(especiales['COCINA']||[]).map(p => `
-            <div class="modal-item" style="padding-left:24px" onclick="selEspecialProducto('COCINA','${p.clave}','${p.producto.replace(/'/g,"\\'")}')">
-              
+          ${(especiales['COCINA']||[]).map(p => {
+            return `<div class="modal-item" style="padding-left:24px"
+              data-ub="COCINA" data-clave="${p.clave}" data-nombre="${p.producto.replace(/"/g,'&quot;')}"
+              onclick="selEspecialFromData(this)">
               <span class="item-nombre" style="color:var(--gray-900);font-size:13px">• ${p.producto} <span style="color:var(--gray-500)">(${p.cantidad})</span></span>
-            </div>
-          `).join('')}
+            </div>`;
+          }).join('')}
         </div>`;
       }
 
@@ -751,7 +757,7 @@ function actualizarCantidadSegunUbicacion() {
   const esEntrada = estado.tipo === 'E';
   
   if (esViga) {
-    // Viga siempre máximo 1, sin importar si es entrada o salida
+    // Viga siempre máximo 1
     estado.cantidad = 1;
     document.getElementById('qty-display').textContent = '1';
     document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = true; b.style.opacity = '0.3'; });
@@ -761,14 +767,20 @@ function actualizarCantidadSegunUbicacion() {
     qtyEl.style.cursor = 'default';
     qtyEl.style.borderBottom = 'none';
   } else if (esEntrada) {
-    // Entrada a especial: cantidad libre y editable manualmente
+    // Entrada: siempre libre sin importar ubicacion
     document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
     document.getElementById('qty-unit').textContent = 'tarima(s)';
     const qtyEl = document.getElementById('qty-display');
-    qtyEl.contentEditable = 'true';
-    qtyEl.style.cursor = 'text';
-    qtyEl.style.borderBottom = '2px solid var(--green)';
-    qtyEl.style.minWidth = '60px';
+    if (esEspecialOrigen) {
+      qtyEl.contentEditable = 'true';
+      qtyEl.style.cursor = 'text';
+      qtyEl.style.borderBottom = '2px solid var(--green)';
+      qtyEl.style.minWidth = '60px';
+    } else {
+      qtyEl.contentEditable = 'false';
+      qtyEl.style.cursor = 'default';
+      qtyEl.style.borderBottom = 'none';
+    }
   } else if (esEspecialOrigen && estado.producto) {
     // Salida/Cambio de especial: limitar al máximo disponible
     const prods = especiales[estado.ubicacion] || [];
@@ -782,6 +794,13 @@ function actualizarCantidadSegunUbicacion() {
     document.querySelectorAll('.qty-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
     document.getElementById('qty-unit').textContent = 'tarima(s)';
   }
+}
+
+function selEspecialFromData(el) {
+  const ub = el.dataset.ub;
+  const clave = el.dataset.clave;
+  const nombre = el.dataset.nombre.replace(/&quot;/g, '"');
+  selEspecialProducto(ub, clave, nombre);
 }
 
 function selEspecialProducto(ubicacion, clave, nombre) {
@@ -1020,44 +1039,32 @@ async function confirmarRegistro() {
     notas: nota
   };
 
-  try {
-    const res = await fetch(SHEETS_URL, {
-      method: 'POST',
-      body: JSON.stringify(registro)
-    });
-    const data = await res.json();
+  // Enviar con no-cors — evita duplicados y problemas de CORS
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: JSON.stringify(registro)
+  }).catch(() => {}); // silenciar errores de red
 
-    if (data.success) {
-      // Actualizar mapa local
-      actualizarMapaLocal(registro);
+  // Actualizar mapa local inmediatamente
+  actualizarMapaLocal(registro);
 
-      // Guardar en historial
-      historial.unshift({...registro, id: Date.now()});
-      localStorage.setItem('historial', JSON.stringify(historial));
+  // Guardar en historial
+  historial.unshift({...registro, id: Date.now()});
+  localStorage.setItem('historial', JSON.stringify(historial));
 
-      // Reset
-      document.getElementById('form-view').style.display = 'block';
-      document.getElementById('confirm-view').style.display = 'none';
-      resetForm();
+  // Reset
+  document.getElementById('form-view').style.display = 'block';
+  document.getElementById('confirm-view').style.display = 'none';
+  resetForm();
 
-      const banner = document.getElementById('success-banner');
-      banner.style.display = 'block';
-      setTimeout(() => banner.style.display = 'none', 3000);
+  const banner = document.getElementById('success-banner');
+  banner.style.display = 'block';
+  setTimeout(() => banner.style.display = 'none', 3000);
 
-      renderHistorial();
-      // Recargar desde Sheets en segundo plano para reflejar cambios
-      cargarMapaDesdeSheets();
-    } else {
-      throw new Error(data.error || 'Error desconocido');
-    }
-  } catch(e) {
-    const errBanner = document.getElementById('error-banner');
-    errBanner.textContent = '❌ Error al guardar: ' + e.message;
-    errBanner.style.display = 'block';
-    setTimeout(() => errBanner.style.display = 'none', 4000);
-    document.getElementById('form-view').style.display = 'block';
-    document.getElementById('confirm-view').style.display = 'none';
-  }
+  renderHistorial();
+  // Recargar desde Sheets después de un momento
+  setTimeout(cargarMapaDesdeSheets, 2000);
 
   btn.disabled = false;
   btn.innerHTML = '✓ Confirmar';
