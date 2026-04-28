@@ -782,7 +782,7 @@ function actualizarCantidadSegunUbicacion() {
       qtyEl.style.cursor = 'default';
       qtyEl.style.borderBottom = 'none';
     }
-  } else if (esEspecialOrigen && estado.producto) {
+  } else if (!esEntrada && esEspecialOrigen && estado.producto) {
     // Salida/Cambio de especial: limitar al máximo disponible
     const prods = especiales[estado.ubicacion] || [];
     const prod = prods.find(p => p.clave === estado.producto.clave);
