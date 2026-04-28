@@ -530,8 +530,9 @@ function selTipo(tipo, el) {
 // ============================================================
 function cambiarQty(delta) {
   const esEspecialOrigen = UBICACIONES_ESPECIALES.includes(estado.ubicacion);
+  const esEntrada = estado.tipo === 'E';
   let max = 999;
-  if (esEspecialOrigen && estado.producto) {
+  if (!esEntrada && esEspecialOrigen && estado.producto) {
     const prods = especiales[estado.ubicacion] || [];
     const prod = prods.find(p => p.clave === estado.producto.clave);
     if (prod) max = prod.cantidad;
