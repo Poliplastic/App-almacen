@@ -537,8 +537,11 @@ function cambiarQty(delta) {
     const prod = prods.find(p => p.clave === estado.producto.clave);
     if (prod) max = prod.cantidad;
   }
-  estado.cantidad = Math.max(1, Math.min(max, estado.cantidad + delta));
-  document.getElementById('qty-display').textContent = estado.cantidad;
+  // Leer cantidad actual del display (puede ser contenteditable)
+  const qtyEl = document.getElementById('qty-display');
+  const current = parseInt(qtyEl.textContent) || estado.cantidad;
+  estado.cantidad = Math.max(1, Math.min(max, current + delta));
+  qtyEl.textContent = estado.cantidad;
 }
 
 // ============================================================
